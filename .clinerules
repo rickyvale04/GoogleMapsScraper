@@ -1,0 +1,199 @@
+---
+description: Automated task handoff strategy with mandatory context window monitoring
+author: https://github.com/cline
+version: 1.0
+tags: ["context-management", "new-task", "automation", "handoff"]
+globs: ["*"]
+---
+# Mandatory Task Handoff Automation
+
+**⚠️ CRITICAL AUTOMATION RULES - MUST BE FOLLOWED ⚠️**
+
+This automation system ensures efficient task handoffs and context preservation through mandatory monitoring and proactive task management.
+
+## Context Window Monitoring - AUTOMATED TRIGGERS
+
+### CRITICAL THRESHOLD: 50% Context Usage
+When context window usage reaches or exceeds 50%, the following MANDATORY sequence must execute:
+
+1. **Immediate Assessment**: Complete current logical step
+2. **Automatic Handoff Initiation**: Use `ask_followup_question` tool
+3. **Context Preservation**: Prepare comprehensive handoff documentation
+4. **Task Creation**: Use `new_task` tool with detailed context transfer
+
+### Monitoring Rules
+```yaml
+context_thresholds:
+  warning: 40%      # Begin preparation for handoff
+  critical: 50%     # MANDATORY handoff initiation
+  emergency: 75%    # Immediate task termination required
+```
+
+## Task Handoff Template - MANDATORY STRUCTURE
+
+### Pre-Handoff Checklist
+- [ ] Current logical step completed
+- [ ] Progress documented
+- [ ] Next steps identified
+- [ ] Critical context captured
+- [ ] User approval requested
+
+### Handoff Sequence
+```xml
+<!-- Step 1: Request User Approval -->
+<ask_followup_question>
+<question>Context window usage has reached {percentage}%. I've completed {current_accomplishment}. To maintain efficiency and preserve context, should I create a new task to continue with {remaining_work}?</question>
+<options>["Yes, create new task", "Continue current session", "Pause for review"]</options>
+</ask_followup_question>
+
+<!-- Step 2: Execute Task Handoff -->
+<new_task>
+<context>
+# Task Continuation: {PROJECT_NAME}
+
+## Context Window Status
+- Previous session usage: {percentage}%
+- Handoff trigger: Proactive context management
+- Session timestamp: {current_timestamp}
+
+## Completed Work
+{DETAILED_ACCOMPLISHMENTS}
+
+## Current State
+{PROJECT_STATUS}
+
+## Next Steps - Priority Order
+{REMAINING_TASKS}
+
+## Critical Information
+{ESSENTIAL_CONTEXT}
+
+## Memory Bank References
+- Project Brief: memory-bank/projectBrief.md
+- Active Context: memory-bank/activeContext.md
+- Progress Status: memory-bank/progress.md
+
+Continue implementation starting with: {NEXT_ACTION}
+</context>
+</new_task>
+```
+
+## Automated Context Capture
+
+### Required Documentation Elements
+1. **Technical State**
+   - Modified files list
+   - Current implementation status
+   - Running processes/environments
+   - Configuration changes
+
+2. **Decision Trail**
+   - Architectural choices made
+   - User preferences noted
+   - Problem-solving approaches
+   - Trade-offs considered
+
+3. **Progress Mapping**
+   - Completed milestones
+   - Remaining objectives
+   - Known blockers
+   - Success metrics
+
+### Memory Bank Integration
+All handoffs MUST reference and update memory bank files:
+- Update `activeContext.md` with current focus
+- Update `progress.md` with latest status
+- Reference `systemPatterns.md` for consistency
+
+## Task Decomposition Automation
+
+### Plan Mode Requirements
+When in Plan Mode, automatically:
+1. Analyze task complexity
+2. Identify natural breakpoints
+3. Create dependency mapping
+4. Estimate session durations
+5. Present breakdown to user
+
+### Mermaid Diagram Generation
+```mermaid
+graph TD
+    A[Complex Task] --> B{Complexity Analysis}
+    B -->|High| C[Task Decomposition]
+    B -->|Medium| D[Single Session Plan]
+    B -->|Low| E[Direct Implementation]
+    
+    C --> F[Subtask 1]
+    C --> G[Subtask 2]
+    C --> H[Subtask N]
+    
+    F --> I[Context Handoff]
+    G --> I
+    H --> I
+    
+    I --> J[New Task Creation]
+```
+
+## Quality Assurance Checks
+
+### Pre-Handoff Validation
+- [ ] Context window usage confirmed ≥50%
+- [ ] Current work logically complete
+- [ ] Next steps clearly defined
+- [ ] Critical context captured
+- [ ] Memory bank updated
+
+### Post-Handoff Verification
+- [ ] New task contains all essential context
+- [ ] Next actions are immediately actionable
+- [ ] No critical information lost
+- [ ] User can seamlessly continue
+
+## Emergency Procedures
+
+### Context Window Critical (≥75%)
+IMMEDIATE ACTIONS:
+1. Stop current operation
+2. Capture minimal essential context
+3. Create emergency handoff
+4. Force new task creation
+
+### Session Continuation Protocols
+If user requests session continuation despite high context usage:
+1. Log warning about potential performance impact
+2. Continue with heightened monitoring
+3. Prepare for emergency handoff if needed
+
+## Integration with Google Maps Scraper Project
+
+### Project-Specific Handoff Elements
+- Current scraping progress
+- XPath selector modifications
+- Error handling updates
+- Performance optimizations
+- Data extraction improvements
+
+### Memory Bank Updates
+Ensure handoffs update:
+- `activeContext.md`: Current development focus
+- `progress.md`: Latest implementation status
+- `systemPatterns.md`: Any pattern changes
+- `techContext.md`: Dependency or tool updates
+
+## Performance Optimization
+
+### Efficient Context Transfer
+- Prioritize essential information
+- Reference existing documentation
+- Minimize redundant explanations
+- Focus on actionable next steps
+
+### Automation Benefits
+- Consistent handoff quality
+- Reduced context loss
+- Improved task continuity
+- Enhanced user experience
+- Proactive context management
+
+**⚠️ ENFORCEMENT NOTICE ⚠️**
+These rules are MANDATORY and automated. Context window monitoring is continuous, and handoff procedures will be automatically triggered when thresholds are reached. This ensures optimal performance and seamless task continuation across all sessions.

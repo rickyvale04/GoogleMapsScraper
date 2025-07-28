@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps Scraper - Web Interface</title>
+    <style>
+        /* Reset e base styling */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1a1a1a;
+            color: #00ff00;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header stile terminale */
+        .header {
+            border: 1px solid #00ff00;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #000;
+        }
+
+        .header h1 {
+            color: #00ff00;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* Sezione comandi */
+        .command-section {
+            border: 1px solid #00ff00;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #000;
+        }
+
+        .command-section h2 {
+            color: #00ff00;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        /* Input stile command line */
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-label {
+            color: #00ff00;
+            font-size: 14px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .command-input {
+            width: 100%;
+            background-color: #000;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .command-input:focus {
+            border-color: #00ffff;
+            box-shadow: 0 0 5px #00ffff;
+        }
+
+        .command-input::placeholder {
+            color: #666;
+        }
+
+        /* Bottoni stile terminale */
+        .btn {
+            background-color: #000;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #00ff00;
+            color: #000;
+        }
+
+        .btn:disabled {
+            border-color: #666;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .btn:disabled:hover {
+            background-color: #000;
+            color: #666;
+        }
+
+        /* Sezione risultati */
+        .results-section {
+            border: 1px solid #00ff00;
+            background-color: #000;
+            margin-bottom: 20px;
+        }
+
+        .results-header {
+            padding: 15px;
+            border-bottom: 1px solid #00ff00;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .results-title {
+            color: #00ff00;
+            font-size: 16px;
+        }
+
+        .results-count {
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* Tabella risultati */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        .results-table th {
+            background-color: #111;
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        .results-table td {
+            color: #ccc;
+        }
+
+        .results-table tr:hover {
+            background-color: #111;
+        }
+
+        /* Link styling */
+        .results-table a {
+            color: #00ffff;
+            text-decoration: none;
+        }
+
+        .results-table a:hover {
+            text-decoration: underline;
+        }
+
+        /* Status indicator */
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #666;
+            background-color: #111;
+            color: #888;
+            font-size: 14px;
+        }
+
+        .status.searching {
+            border-color: #ffff00;
+            color: #ffff00;
+        }
+
+        .status.success {
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+
+        .status.error {
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .results-table {
+                font-size: 10px;
+            }
+            
+            .results-table th,
+            .results-table td {
+                padding: 5px;
+            }
+            
+            .btn {
+                padding: 8px 16px;
+                margin-bottom: 10px;
+            }
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #333;
+            border-radius: 50%;
+            border-top-color: #00ff00;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🗺️ Google Maps Scraper - Web Interface</h1>
+            <div class="subtitle">Ricerca REALE su Google Maps con Playwright | Interfaccia collegata al sistema di scraping</div>
+        </div>
+
+        <!-- Sezione comandi -->
+        <div class="command-section">
+            <h2>🔍 Comandi di Ricerca</h2>
+            
+            <!-- Input principale per la query -->
+            <div class="input-group">
+                <label class="input-label" for="searchQuery">Query di ricerca:</label>
+                <input 
+                    type="text" 
+                    id="searchQuery" 
+                    class="command-input" 
+                    placeholder="es: 'travel agency cinesi Milano', 'ristoranti sushi Roma', 'farmacie Torino'"
+                    value="travel agency cinesi Milano"
+                >
+            </div>
+
+            <!-- Filtri aggiuntivi -->
+            <div class="input-group">
+                <label class="input-label" for="filters">Filtri aggiuntivi (opzionale):</label>
+                <input 
+                    type="text" 
+                    id="filters" 
+                    class="command-input" 
+                    placeholder="es: 'zona centro', 'con sito web', 'aperto domenica'"
+                >
+            </div>
+
+            <!-- Numero risultati -->
+            <div class="input-group">
+                <label class="input-label" for="maxResults">Numero massimo risultati:</label>
+                <input 
+                    type="number" 
+                    id="maxResults" 
+                    class="command-input" 
+                    value="20" 
+                    min="1" 
+                    max="100"
+                >
+            </div>
+
+            <!-- Bottoni di controllo -->
+            <div style="margin-top: 20px;">
+                <button class="btn" id="searchBtn" onclick="startSearch()">
+                    🔍 Avvia Ricerca
+                </button>
+                <button class="btn" id="downloadBtn" onclick="downloadCSV()" disabled>
+                    📥 Scarica CSV
+                </button>
+                <button class="btn" id="clearBtn" onclick="clearResults()">
+                    🗑️ Pulisci Risultati
+                </button>
+            </div>
+        </div>
+
+        <!-- Status indicator -->
+        <div id="status" class="status hidden">
+            Pronto per la ricerca...
+        </div>
+
+        <!-- Sezione risultati -->
+        <div id="resultsSection" class="results-section hidden">
+            <div class="results-header">
+                <div class="results-title">📊 Risultati della Ricerca</div>
+                <div class="results-count" id="resultsCount">0 risultati trovati</div>
+            </div>
+            
+            <!-- Tabella risultati -->
+            <div style="overflow-x: auto;">
+                <table class="results-table" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Indirizzo</th>
+                            <th>Telefono</th>
+                            <th>Sito Web</th>
+                            <th>Tipo</th>
+                            <th>Recensioni</th>
+                            <th>Orari</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                        <!-- I risultati verranno inseriti qui dinamicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentResults = [];
+        let currentSearchId = null;
+        let pollInterval = null;
+
+        /**
+         * Avvia la ricerca reale tramite API
+         */
+        function startSearch() {
+            const query = document.getElementById('searchQuery').value.trim();
+            const maxResults = parseInt(document.getElementById('maxResults').value) || 20;
+            const filters = document.getElementById('filters').value.trim();
+            
+            if (!query) {
+                showStatus('Inserisci una query di ricerca valida', 'error');
+                return;
+            }
+
+            // Simula il processo di ricerca
+            showStatus('🔍 Avvio ricerca su Google Maps...', 'searching');
+            document.getElementById('searchBtn').disabled = true;
+            
+            // Chiama l'API reale
+            fetch('/api/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: query,
+                    maxResults: maxResults,
+                    filters: filters
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showStatus(`❌ Errore: ${data.error}`, 'error');
+                    document.getElementById('searchBtn').disabled = false;
+                    return;
+                }
+                
+                currentSearchId = data.search_id;
+                showStatus('🔍 Ricerca in corso su Google Maps... Questo può richiedere alcuni minuti.', 'searching');
+                
+                // Inizia polling per controllare lo stato
+                startPolling();
+            })
+            .catch(error => {
+                console.error('Errore nella richiesta:', error);
+                showStatus('❌ Errore di connessione al server', 'error');
+                document.getElementById('searchBtn').disabled = false;
+            });
+        }
+
+        /**
+         * Inizia il polling per controllare lo stato della ricerca
+         */
+        function startPolling() {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+            
+            pollInterval = setInterval(() => {
+                checkSearchStatus();
+            }, 3000); // Controlla ogni 3 secondi
+            
+            // Primo controllo immediato
+            checkSearchStatus();
+        }
+
+        /**
+         * Controlla lo stato della ricerca
+         */
+        function checkSearchStatus() {
+            if (!currentSearchId) return;
+            
+            fetch(`/api/search/${currentSearchId}/status`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'completed') {
+                    // Ricerca completata, ottieni i risultati
+                    getSearchResults();
+                } else if (data.status === 'error' || data.status === 'timeout') {
+                    // Errore o timeout
+                    clearInterval(pollInterval);
+                    showStatus(`❌ ${data.error || 'Errore durante la ricerca'}`, 'error');
+                    document.getElementById('searchBtn').disabled = false;
+                } else {
+                    // Ancora in corso
+                    showStatus(`🔍 Ricerca in corso... (${data.elapsed_time})`, 'searching');
+                }
+            })
+            .catch(error => {
+                console.error('Errore nel controllo stato:', error);
+                clearInterval(pollInterval);
+                showStatus('❌ Errore di connessione', 'error');
+                document.getElementById('searchBtn').disabled = false;
+            });
+        }
+
+        /**
+         * Ottieni i risultati della ricerca
+         */
+        function getSearchResults() {
+            if (!currentSearchId) return;
+            
+            fetch(`/api/search/${currentSearchId}/results`)
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(pollInterval);
+                
+                if (data.error) {
+                    showStatus(`❌ Errore: ${data.error}`, 'error');
+                    document.getElementById('searchBtn').disabled = false;
+                    return;
+                }
+                
+                currentResults = data.results || [];
+                displayResults(currentResults, data.query);
+                showStatus(`✅ Ricerca completata: ${currentResults.length} risultati trovati da Google Maps`, 'success');
+                
+                document.getElementById('searchBtn').disabled = false;
+                document.getElementById('downloadBtn').disabled = false;
+            })
+            .catch(error => {
+                console.error('Errore nel recupero risultati:', error);
+                clearInterval(pollInterval);
+                showStatus('❌ Errore nel recupero risultati', 'error');
+                document.getElementById('searchBtn').disabled = false;
+            });
+        }
+
+        /**
+         * Pulisce i risultati
+         */
+        function clearResults() {
+            currentResults = [];
+            currentSearchId = null;
+            
+            // Ferma il polling se attivo
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+            
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('status').classList.add('hidden');
+            document.getElementById('downloadBtn').disabled = true;
+            document.getElementById('searchQuery').value = '';
+            document.getElementById('filters').value = '';
+            document.getElementById('searchBtn').disabled = false;
+        }        /**
+         * Genera risultati mock per query non predefinite
+         */
+        function generateMockResults(query, count) {
+            const results = [];
+            const businessTypes = ['Business', 'Store', 'Service', 'Restaurant', 'Shop', 'Office', 'Agency', 'Center'];
+            const streets = ['Via Roma', 'Corso Italia', 'Via Milano', 'Piazza Duomo', 'Via Garibaldi', 'Corso Venezia', 'Via Torino', 'Via Napoli', 'Corso Buenos Aires', 'Via Dante', 'Via Manzoni', 'Via Verdi', 'Piazza San Marco', 'Via del Corso', 'Via Nazionale'];
+            const cities = ['Milano MI', 'Roma RM', 'Torino TO', 'Napoli NA', 'Firenze FI', 'Bologna BO', 'Venezia VE', 'Genova GE'];
+            const domains = ['com', 'it', 'net', 'org', 'eu'];
+            
+            for (let i = 1; i <= count; i++) {
+                const randomStreet = streets[Math.floor(Math.random() * streets.length)];
+                const randomCity = cities[Math.floor(Math.random() * cities.length)];
+                const randomType = businessTypes[Math.floor(Math.random() * businessTypes.length)];
+                const randomDomain = domains[Math.floor(Math.random() * domains.length)];
+                const randomReviews = Math.floor(Math.random() * 1000) + 1;
+                const hasWebsite = Math.random() > 0.3; // 70% chance di avere un sito web
+                const randomHour = Math.floor(Math.random() * 4) + 6; // Tra 6pm e 9pm
+                
+                results.push({
+                    name: `${query.charAt(0).toUpperCase() + query.slice(1)} ${randomType} ${i}`,
+                    address: `${randomStreet}, ${Math.floor(Math.random() * 200) + 1}, ${randomCity}, Italy`,
+                    phone: `+39 ${Math.floor(Math.random() * 9) + 1}${Math.floor(Math.random() * 9)} ${Math.floor(Math.random() * 9000) + 1000} ${Math.floor(Math.random() * 9000) + 1000}`,
+                    website: hasWebsite ? `${query.replace(/\s+/g, '').toLowerCase()}${i}.${randomDomain}` : '-',
+                    type: randomType,
+                    reviews: `${randomReviews} recensioni`,
+                    hours: `Closes ${randomHour}${Math.random() > 0.5 ? ':30' : ''}pm`
+                });
+            }
+            return results;
+        }
+
+        /**
+         * Mostra i risultati nella tabella
+         */
+        function displayResults(results, query) {
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsBody = document.getElementById('resultsBody');
+            const resultsCount = document.getElementById('resultsCount');
+            
+            // Pulisce i risultati precedenti
+            resultsBody.innerHTML = '';
+            
+            // Aggiunge i nuovi risultati
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${result.name}</strong></td>
+                    <td>${result.address}</td>
+                    <td>${result.phone}</td>
+                    <td>${result.website !== '-' ? `<a href="http://${result.website}" target="_blank">${result.website}</a>` : '-'}</td>
+                    <td>${result.type}</td>
+                    <td>${result.reviews}</td>
+                    <td>${result.hours}</td>
+                `;
+                resultsBody.appendChild(row);
+            });
+            
+            // Aggiorna il contatore e mostra la sezione risultati
+            resultsCount.textContent = `${results.length} risultati trovati per "${query}"`;
+            resultsSection.classList.remove('hidden');
+        }
+
+        /**
+         * Mostra un messaggio di status
+         */
+        function showStatus(message, type = '') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.classList.remove('hidden');
+            
+            // Nasconde automaticamente dopo 5 secondi se non è in caricamento
+            if (type !== 'searching') {
+                setTimeout(() => {
+                    status.classList.add('hidden');
+                }, 5000);
+            }
+        }
+
+        /**
+         * Scarica i risultati come file CSV
+         */
+        function downloadCSV() {
+            if (currentResults.length === 0) {
+                showStatus('Nessun risultato da scaricare', 'error');
+                return;
+            }
+
+            // Crea il contenuto CSV
+            const headers = ['Nome', 'Indirizzo', 'Telefono', 'Sito Web', 'Tipo', 'Recensioni', 'Orari'];
+            const csvContent = [
+                headers.join(','),
+                ...currentResults.map(result => [
+                    `"${result.name}"`,
+                    `"${result.address}"`,
+                    `"${result.phone}"`,
+                    `"${result.website}"`,
+                    `"${result.type}"`,
+                    `"${result.reviews}"`,
+                    `"${result.hours}"`
+                ].join(','))
+            ].join('\n');
+
+            // Crea e scarica il file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `google_maps_results_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showStatus('📥 File CSV scaricato con successo!', 'success');
+        }
+
+        /**
+         * Pulisce i risultati
+         */
+        function clearResults() {
+            currentResults = [];
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('status').classList.add('hidden');
+            document.getElementById('downloadBtn').disabled = true;
+            document.getElementById('searchQuery').value = '';
+            document.getElementById('filters').value = '';
+        }
+
+        // Event listeners per migliorare l'usabilità
+        document.addEventListener('DOMContentLoaded', function() {
+            // Permette di avviare la ricerca premendo Enter
+            document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    startSearch();
+                }
+            });
+            
+            document.getElementById('filters').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    startSearch();
+                }
+            });
+            
+            document.getElementById('maxResults').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    startSearch();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
