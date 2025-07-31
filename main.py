@@ -125,35 +125,72 @@ def scrape_places(search_for: str, total: int) -> List[Place]:
             page.keyboard.press("Enter")
             page.wait_for_selector('//a[contains(@href, "https://www.google.com/maps/place")]')
             page.hover('//a[contains(@href, "https://www.google.com/maps/place")]')
+            
             previously_counted = 0
+            no_change_count = 0
+            max_no_change = 5  # Allow 5 consecutive no-change iterations before giving up
+            
+            # Try to get at least the minimum requested results
+            target_results = max(total, 50)  # Always try to get at least 50 results, or more if requested
+            
             while True:
                 page.mouse.wheel(0, 10000)
+                page.wait_for_timeout(2000)  # Wait longer for results to load
                 page.wait_for_selector('//a[contains(@href, "https://www.google.com/maps/place")]')
                 found = page.locator('//a[contains(@href, "https://www.google.com/maps/place")]').count()
-                logging.info(f"Currently Found: {found}")
-                if found >= total:
+                logging.info(f"Currently Found: {found} (Target: {target_results})")
+                
+                if found >= target_results:
+                    logging.info(f"Reached target of {target_results} results")
                     break
+                    
                 if found == previously_counted:
-                    logging.info("Arrived at all available")
-                    break
+                    no_change_count += 1
+                    logging.info(f"No new results found, attempt {no_change_count}/{max_no_change}")
+                    if no_change_count >= max_no_change:
+                        logging.info("Reached maximum attempts with no new results")
+                        break
+                else:
+                    no_change_count = 0  # Reset counter if we found new results
+                    
                 previously_counted = found
-            listings = page.locator('//a[contains(@href, "https://www.google.com/maps/place")]').all()[:total]
-            listings = [listing.locator("xpath=..") for listing in listings]
-            logging.info(f"Total Found: {len(listings)}")
+                
+                # Add some randomized scrolling to avoid detection
+                page.mouse.wheel(0, 5000)
+                page.wait_for_timeout(1000)
+                
+            # Get all available listings, but ensure we have enough
+            all_listings = page.locator('//a[contains(@href, "https://www.google.com/maps/place")]').all()
+            
+            # Take more listings than requested to ensure we get enough valid results
+            max_to_process = max(len(all_listings), total * 2)  # Process up to 2x the requested amount
+            listings = [listing.locator("xpath=..") for listing in all_listings[:max_to_process]]
+            
+            logging.info(f"Total Found: {len(listings)}, Processing all to ensure minimum {total} valid results")
+            
             for idx, listing in enumerate(listings):
                 try:
                     listing.click()
                     page.wait_for_selector('//div[@class="TIHn2 "]//h1[@class="DUwDvf lfPIob"]', timeout=10000)
-                    time.sleep(1.5)  # Give time for details to load
+                    time.sleep(2)  # Give more time for details to load
                     place = extract_place(page)
                     if place.name:
                         places.append(place)
+                        logging.info(f"Extracted place {len(places)}: {place.name}")
+                        # Stop if we have enough valid results and have reached our minimum
+                        if len(places) >= total and len(places) >= 20:
+                            logging.info(f"Reached minimum target of {total} valid results")
+                            break
                     else:
                         logging.warning(f"No name found for listing {idx+1}, skipping.")
                 except Exception as e:
                     logging.warning(f"Failed to extract listing {idx+1}: {e}")
+                    continue
+                    
         finally:
             browser.close()
+    
+    logging.info(f"Final result: {len(places)} places extracted")
     return places
 
 def save_places_to_csv(places: List[Place], output_path: str = "result.csv", append: bool = False):
@@ -173,12 +210,12 @@ def save_places_to_csv(places: List[Place], output_path: str = "result.csv", app
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--search", type=str, help="Search query for Google Maps")
-    parser.add_argument("-t", "--total", type=int, help="Total number of results to scrape")
+    parser.add_argument("-t", "--total", type=int, help="Minimum number of results to scrape")
     parser.add_argument("-o", "--output", type=str, default="result.csv", help="Output CSV file path")
     parser.add_argument("--append", action="store_true", help="Append results to the output file instead of overwriting")
     args = parser.parse_args()
     search_for = args.search or "turkish stores in toronto Canada"
-    total = args.total or 1
+    total = args.total or 20  # Increased default minimum
     output_path = args.output
     append = args.append
     places = scrape_places(search_for, total)

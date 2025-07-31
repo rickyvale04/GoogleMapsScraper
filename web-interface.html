@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -255,91 +255,91 @@
         <!-- Header -->
         <div class="header">
             <h1>🗺️ Google Maps Scraper - Web Interface</h1>
-            <div class="subtitle">Ricerca REALE su Google Maps con Playwright | Interfaccia collegata al sistema di scraping</div>
+            <div class="subtitle">REAL Google Maps Search with Playwright | Interface connected to scraping system</div>
         </div>
 
-        <!-- Sezione comandi -->
+        <!-- Commands section -->
         <div class="command-section">
-            <h2>🔍 Comandi di Ricerca</h2>
+            <h2>🔍 Search Commands</h2>
             
-            <!-- Input principale per la query -->
+            <!-- Main input for query -->
             <div class="input-group">
-                <label class="input-label" for="searchQuery">Query di ricerca:</label>
+                <label class="input-label" for="searchQuery">Search query:</label>
                 <input 
                     type="text" 
                     id="searchQuery" 
                     class="command-input" 
-                    placeholder="es: 'travel agency cinesi Milano', 'ristoranti sushi Roma', 'farmacie Torino'"
-                    value="travel agency cinesi Milano"
+                    placeholder="e.g. 'chinese travel agency Milan', 'sushi restaurants Rome', 'pharmacies Turin'"
+                    value="chinese travel agency Milan"
                 >
             </div>
 
-            <!-- Filtri aggiuntivi -->
+            <!-- Additional filters -->
             <div class="input-group">
-                <label class="input-label" for="filters">Filtri aggiuntivi (opzionale):</label>
+                <label class="input-label" for="filters">Additional filters (optional):</label>
                 <input 
                     type="text" 
                     id="filters" 
                     class="command-input" 
-                    placeholder="es: 'zona centro', 'con sito web', 'aperto domenica'"
+                    placeholder="e.g. 'downtown area', 'with website', 'open on Sunday'"
                 >
             </div>
 
-            <!-- Numero risultati -->
+            <!-- Number of results -->
             <div class="input-group">
-                <label class="input-label" for="maxResults">Numero massimo risultati:</label>
+                <label class="input-label" for="maxResults">Minimum number of results:</label>
                 <input 
                     type="number" 
                     id="maxResults" 
                     class="command-input" 
                     value="20" 
                     min="1" 
-                    max="100"
+                    max="200"
                 >
             </div>
 
-            <!-- Bottoni di controllo -->
+            <!-- Control buttons -->
             <div style="margin-top: 20px;">
                 <button class="btn" id="searchBtn" onclick="startSearch()">
-                    🔍 Avvia Ricerca
+                    🔍 Start Search
                 </button>
                 <button class="btn" id="downloadBtn" onclick="downloadCSV()" disabled>
-                    📥 Scarica CSV
+                    📥 Download CSV
                 </button>
                 <button class="btn" id="clearBtn" onclick="clearResults()">
-                    🗑️ Pulisci Risultati
+                    🗑️ Clear Results
                 </button>
             </div>
         </div>
 
         <!-- Status indicator -->
         <div id="status" class="status hidden">
-            Pronto per la ricerca...
+            Ready for search...
         </div>
 
-        <!-- Sezione risultati -->
+        <!-- Results section -->
         <div id="resultsSection" class="results-section hidden">
             <div class="results-header">
-                <div class="results-title">📊 Risultati della Ricerca</div>
-                <div class="results-count" id="resultsCount">0 risultati trovati</div>
+                <div class="results-title">📊 Search Results</div>
+                <div class="results-count" id="resultsCount">0 results found</div>
             </div>
             
-            <!-- Tabella risultati -->
+            <!-- Results table -->
             <div style="overflow-x: auto;">
                 <table class="results-table" id="resultsTable">
                     <thead>
                         <tr>
-                            <th>Nome</th>
-                            <th>Indirizzo</th>
-                            <th>Telefono</th>
-                            <th>Sito Web</th>
-                            <th>Tipo</th>
-                            <th>Recensioni</th>
-                            <th>Orari</th>
+                            <th>Name</th>
+                            <th>Address</th>
+                            <th>Phone</th>
+                            <th>Website</th>
+                            <th>Type</th>
+                            <th>Reviews</th>
+                            <th>Hours</th>
                         </tr>
                     </thead>
                     <tbody id="resultsBody">
-                        <!-- I risultati verranno inseriti qui dinamicamente -->
+                        <!-- Results will be inserted here dynamically -->
                     </tbody>
                 </table>
             </div>
@@ -352,7 +352,7 @@
         let pollInterval = null;
 
         /**
-         * Avvia la ricerca reale tramite API
+         * Start real search via API
          */
         function startSearch() {
             const query = document.getElementById('searchQuery').value.trim();
@@ -360,15 +360,15 @@
             const filters = document.getElementById('filters').value.trim();
             
             if (!query) {
-                showStatus('Inserisci una query di ricerca valida', 'error');
+                showStatus('Enter a valid search query', 'error');
                 return;
             }
 
-            // Simula il processo di ricerca
-            showStatus('🔍 Avvio ricerca su Google Maps...', 'searching');
+            // Simulate search process
+            showStatus('🔍 Starting Google Maps search...', 'searching');
             document.getElementById('searchBtn').disabled = true;
             
-            // Chiama l'API reale
+            // Call the real API
             fetch('/api/search', {
                 method: 'POST',
                 headers: {
@@ -383,26 +383,26 @@
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    showStatus(`❌ Errore: ${data.error}`, 'error');
+                    showStatus(`❌ Error: ${data.error}`, 'error');
                     document.getElementById('searchBtn').disabled = false;
                     return;
                 }
                 
                 currentSearchId = data.search_id;
-                showStatus('🔍 Ricerca in corso su Google Maps... Questo può richiedere alcuni minuti.', 'searching');
+                showStatus('🔍 Search in progress on Google Maps... This may take a few minutes.', 'searching');
                 
-                // Inizia polling per controllare lo stato
+                // Start polling to check status
                 startPolling();
             })
             .catch(error => {
-                console.error('Errore nella richiesta:', error);
-                showStatus('❌ Errore di connessione al server', 'error');
+                console.error('Request error:', error);
+                showStatus('❌ Server connection error', 'error');
                 document.getElementById('searchBtn').disabled = false;
             });
         }
 
         /**
-         * Inizia il polling per controllare lo stato della ricerca
+         * Start polling to check search status
          */
         function startPolling() {
             if (pollInterval) {
@@ -411,14 +411,14 @@
             
             pollInterval = setInterval(() => {
                 checkSearchStatus();
-            }, 3000); // Controlla ogni 3 secondi
+            }, 3000); // Check every 3 seconds
             
-            // Primo controllo immediato
+            // First immediate check
             checkSearchStatus();
         }
 
         /**
-         * Controlla lo stato della ricerca
+         * Check search status
          */
         function checkSearchStatus() {
             if (!currentSearchId) return;
@@ -427,28 +427,28 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'completed') {
-                    // Ricerca completata, ottieni i risultati
+                    // Search completed, get results
                     getSearchResults();
                 } else if (data.status === 'error' || data.status === 'timeout') {
-                    // Errore o timeout
+                    // Error or timeout
                     clearInterval(pollInterval);
-                    showStatus(`❌ ${data.error || 'Errore durante la ricerca'}`, 'error');
+                    showStatus(`❌ ${data.error || 'Error during search'}`, 'error');
                     document.getElementById('searchBtn').disabled = false;
                 } else {
-                    // Ancora in corso
-                    showStatus(`🔍 Ricerca in corso... (${data.elapsed_time})`, 'searching');
+                    // Still in progress
+                    showStatus(`🔍 Search in progress... (${data.elapsed_time})`, 'searching');
                 }
             })
             .catch(error => {
-                console.error('Errore nel controllo stato:', error);
+                console.error('Status check error:', error);
                 clearInterval(pollInterval);
-                showStatus('❌ Errore di connessione', 'error');
+                showStatus('❌ Connection error', 'error');
                 document.getElementById('searchBtn').disabled = false;
             });
         }
 
         /**
-         * Ottieni i risultati della ricerca
+         * Get search results
          */
         function getSearchResults() {
             if (!currentSearchId) return;
@@ -459,34 +459,34 @@
                 clearInterval(pollInterval);
                 
                 if (data.error) {
-                    showStatus(`❌ Errore: ${data.error}`, 'error');
+                    showStatus(`❌ Error: ${data.error}`, 'error');
                     document.getElementById('searchBtn').disabled = false;
                     return;
                 }
                 
                 currentResults = data.results || [];
                 displayResults(currentResults, data.query);
-                showStatus(`✅ Ricerca completata: ${currentResults.length} risultati trovati da Google Maps`, 'success');
+                showStatus(`✅ Search completed: ${currentResults.length} results found from Google Maps`, 'success');
                 
                 document.getElementById('searchBtn').disabled = false;
                 document.getElementById('downloadBtn').disabled = false;
             })
             .catch(error => {
-                console.error('Errore nel recupero risultati:', error);
+                console.error('Results retrieval error:', error);
                 clearInterval(pollInterval);
-                showStatus('❌ Errore nel recupero risultati', 'error');
+                showStatus('❌ Error retrieving results', 'error');
                 document.getElementById('searchBtn').disabled = false;
             });
         }
 
         /**
-         * Pulisce i risultati
+         * Clear results
          */
         function clearResults() {
             currentResults = [];
             currentSearchId = null;
             
-            // Ferma il polling se attivo
+            // Stop polling if active
             if (pollInterval) {
                 clearInterval(pollInterval);
                 pollInterval = null;
@@ -499,7 +499,7 @@
             document.getElementById('filters').value = '';
             document.getElementById('searchBtn').disabled = false;
         }        /**
-         * Genera risultati mock per query non predefinite
+         * Generate mock results for non-predefined queries
          */
         function generateMockResults(query, count) {
             const results = [];
@@ -514,8 +514,8 @@
                 const randomType = businessTypes[Math.floor(Math.random() * businessTypes.length)];
                 const randomDomain = domains[Math.floor(Math.random() * domains.length)];
                 const randomReviews = Math.floor(Math.random() * 1000) + 1;
-                const hasWebsite = Math.random() > 0.3; // 70% chance di avere un sito web
-                const randomHour = Math.floor(Math.random() * 4) + 6; // Tra 6pm e 9pm
+                const hasWebsite = Math.random() > 0.3; // 70% chance of having a website
+                const randomHour = Math.floor(Math.random() * 4) + 6; // Between 6pm and 9pm
                 
                 results.push({
                     name: `${query.charAt(0).toUpperCase() + query.slice(1)} ${randomType} ${i}`,
@@ -531,17 +531,17 @@
         }
 
         /**
-         * Mostra i risultati nella tabella
+         * Show results in table
          */
         function displayResults(results, query) {
             const resultsSection = document.getElementById('resultsSection');
             const resultsBody = document.getElementById('resultsBody');
             const resultsCount = document.getElementById('resultsCount');
             
-            // Pulisce i risultati precedenti
+            // Clear previous results
             resultsBody.innerHTML = '';
             
-            // Aggiunge i nuovi risultati
+            // Add new results
             results.forEach(result => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -556,13 +556,13 @@
                 resultsBody.appendChild(row);
             });
             
-            // Aggiorna il contatore e mostra la sezione risultati
-            resultsCount.textContent = `${results.length} risultati trovati per "${query}"`;
+            // Update counter and show results section
+            resultsCount.textContent = `${results.length} results found for "${query}"`;
             resultsSection.classList.remove('hidden');
         }
 
         /**
-         * Mostra un messaggio di status
+         * Show status message
          */
         function showStatus(message, type = '') {
             const status = document.getElementById('status');
@@ -570,7 +570,7 @@
             status.className = `status ${type}`;
             status.classList.remove('hidden');
             
-            // Nasconde automaticamente dopo 5 secondi se non è in caricamento
+            // Automatically hide after 5 seconds if not loading
             if (type !== 'searching') {
                 setTimeout(() => {
                     status.classList.add('hidden');
@@ -579,16 +579,16 @@
         }
 
         /**
-         * Scarica i risultati come file CSV
+         * Download results as CSV file
          */
         function downloadCSV() {
             if (currentResults.length === 0) {
-                showStatus('Nessun risultato da scaricare', 'error');
+                showStatus('No results to download', 'error');
                 return;
             }
 
-            // Crea il contenuto CSV
-            const headers = ['Nome', 'Indirizzo', 'Telefono', 'Sito Web', 'Tipo', 'Recensioni', 'Orari'];
+            // Create CSV content
+            const headers = ['Name', 'Address', 'Phone', 'Website', 'Type', 'Reviews', 'Hours'];
             const csvContent = [
                 headers.join(','),
                 ...currentResults.map(result => [
@@ -602,7 +602,7 @@
                 ].join(','))
             ].join('\n');
 
-            // Crea e scarica il file
+            // Create and download file
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
@@ -613,11 +613,11 @@
             link.click();
             document.body.removeChild(link);
             
-            showStatus('📥 File CSV scaricato con successo!', 'success');
+            showStatus('📥 CSV file downloaded successfully!', 'success');
         }
 
         /**
-         * Pulisce i risultati
+         * Clear results
          */
         function clearResults() {
             currentResults = [];
@@ -628,9 +628,9 @@
             document.getElementById('filters').value = '';
         }
 
-        // Event listeners per migliorare l'usabilità
+        // Event listeners to improve usability
         document.addEventListener('DOMContentLoaded', function() {
-            // Permette di avviare la ricerca premendo Enter
+            // Allow starting search by pressing Enter
             document.getElementById('searchQuery').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     startSearch();

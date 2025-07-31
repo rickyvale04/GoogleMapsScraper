@@ -43,7 +43,10 @@ def start_search():
         filters = data.get('filters', '').strip()
         
         if not query:
-            return jsonify({'error': 'Query di ricerca richiesta'}), 400
+            return jsonify({'error': 'Search query required'}), 400
+        
+        # Ensure we try to get at least a reasonable number of results
+        min_target = max(max_results, 20)  # Always aim for at least 20 results
         
         # Genera un ID unico per questa ricerca
         search_id = f"search_{int(time.time() * 1000)}"
@@ -62,6 +65,7 @@ def start_search():
             'query': query,
             'full_query': full_query,
             'max_results': max_results,
+            'min_target': min_target,
             'temp_file': temp_file,
             'start_time': datetime.now(),
             'results': []
@@ -70,7 +74,7 @@ def start_search():
         # Avvia scraping in background
         thread = threading.Thread(
             target=run_scraper,
-            args=(search_id, full_query, max_results, temp_file)
+            args=(search_id, full_query, min_target, temp_file)
         )
         thread.daemon = True
         thread.start()
@@ -78,7 +82,7 @@ def start_search():
         return jsonify({
             'search_id': search_id,
             'status': 'started',
-            'message': f'Ricerca avviata per: {query}'
+            'message': f'Search started for: {query} (minimum {min_target} results)'
         })
         
     except Exception as e:
@@ -152,7 +156,7 @@ def run_scraper(search_id, query, max_results, temp_file):
             cmd,
             capture_output=True,
             text=True,
-            timeout=300  # Timeout di 5 minuti
+            timeout=600  # Increased timeout to 10 minutes for more thorough scraping
         )
         
         if result.returncode == 0:
