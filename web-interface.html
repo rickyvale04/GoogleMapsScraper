@@ -274,6 +274,18 @@
                 >
             </div>
 
+            <!-- City selection -->
+            <div class="input-group">
+                <label class="input-label" for="cities">Target cities (comma-separated):</label>
+                <input 
+                    type="text" 
+                    id="cities" 
+                    class="command-input" 
+                    placeholder="e.g. 'Milan, Rome, Naples' or 'New York, Los Angeles, Chicago'"
+                    value="Milan, Rome"
+                >
+            </div>
+
             <!-- Additional filters -->
             <div class="input-group">
                 <label class="input-label" for="filters">Additional filters (optional):</label>
@@ -330,6 +342,7 @@
                     <thead>
                         <tr>
                             <th>Name</th>
+                            <th>City</th>
                             <th>Address</th>
                             <th>Phone</th>
                             <th>Website</th>
@@ -358,14 +371,20 @@
             const query = document.getElementById('searchQuery').value.trim();
             const maxResults = parseInt(document.getElementById('maxResults').value) || 20;
             const filters = document.getElementById('filters').value.trim();
+            const cities = document.getElementById('cities').value.trim();
             
             if (!query) {
                 showStatus('Enter a valid search query', 'error');
                 return;
             }
 
+            if (!cities) {
+                showStatus('Enter at least one target city', 'error');
+                return;
+            }
+
             // Simulate search process
-            showStatus('🔍 Starting Google Maps search...', 'searching');
+            showStatus('🔍 Starting Google Maps search across selected cities...', 'searching');
             document.getElementById('searchBtn').disabled = true;
             
             // Call the real API
@@ -377,7 +396,8 @@
                 body: JSON.stringify({
                     query: query,
                     maxResults: maxResults,
-                    filters: filters
+                    filters: filters,
+                    cities: cities
                 })
             })
             .then(response => response.json())
@@ -389,7 +409,7 @@
                 }
                 
                 currentSearchId = data.search_id;
-                showStatus('🔍 Search in progress on Google Maps... This may take a few minutes.', 'searching');
+                showStatus('🔍 Search in progress across multiple cities... This may take several minutes.', 'searching');
                 
                 // Start polling to check status
                 startPolling();
@@ -436,7 +456,14 @@
                     document.getElementById('searchBtn').disabled = false;
                 } else {
                     // Still in progress
-                    showStatus(`🔍 Search in progress... (${data.elapsed_time})`, 'searching');
+                    let statusMsg = `🔍 Search in progress... (${data.elapsed_time})`;
+                    if (data.current_city) {
+                        statusMsg += ` | Processing: ${data.current_city}`;
+                    }
+                    if (data.progress) {
+                        statusMsg += ` | Results: ${data.progress}`;
+                    }
+                    showStatus(statusMsg, 'searching');
                 }
             })
             .catch(error => {
@@ -546,6 +573,7 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><strong>${result.name}</strong></td>
+                    <td><strong>${result.city || 'Unknown'}</strong></td>
                     <td>${result.address}</td>
                     <td>${result.phone}</td>
                     <td>${result.website !== '-' ? `<a href="http://${result.website}" target="_blank">${result.website}</a>` : '-'}</td>
@@ -588,11 +616,12 @@
             }
 
             // Create CSV content
-            const headers = ['Name', 'Address', 'Phone', 'Website', 'Type', 'Reviews', 'Hours'];
+            const headers = ['Name', 'City', 'Address', 'Phone', 'Website', 'Type', 'Reviews', 'Hours'];
             const csvContent = [
                 headers.join(','),
                 ...currentResults.map(result => [
                     `"${result.name}"`,
+                    `"${result.city || 'Unknown'}"`,
                     `"${result.address}"`,
                     `"${result.phone}"`,
                     `"${result.website}"`,
@@ -626,6 +655,7 @@
             document.getElementById('downloadBtn').disabled = true;
             document.getElementById('searchQuery').value = '';
             document.getElementById('filters').value = '';
+            document.getElementById('cities').value = '';
         }
 
         // Event listeners to improve usability
@@ -638,6 +668,12 @@
             });
             
             document.getElementById('filters').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    startSearch();
+                }
+            });
+            
+            document.getElementById('cities').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     startSearch();
                 }

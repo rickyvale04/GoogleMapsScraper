@@ -7,6 +7,7 @@ import argparse
 import platform
 import time
 import os
+import random
 
 @dataclass
 class Place:
@@ -112,12 +113,33 @@ def scrape_places(search_for: str, total: int) -> List[Place]:
     setup_logging()
     places: List[Place] = []
     with sync_playwright() as p:
+        # Configure browser with more stable options
+        browser_args = [
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-blink-features=AutomationControlled',
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor'
+        ]
+        
         if platform.system() == "Windows":
             browser_path = r"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-            browser = p.chromium.launch(executable_path=browser_path, headless=False)
+            browser = p.chromium.launch(
+                executable_path=browser_path, 
+                headless=False,
+                args=browser_args
+            )
         else:
-            browser = p.chromium.launch(headless=False)
+            browser = p.chromium.launch(
+                headless=False,
+                args=browser_args
+            )
+        
         page = browser.new_page()
+        
+        # Set longer timeouts
+        page.set_default_timeout(30000)  # 30 seconds default timeout
+        
         try:
             page.goto("https://www.google.com/maps/@32.9817464,70.1930781,3.67z?", timeout=60000)
             page.wait_for_timeout(1000)
@@ -128,14 +150,15 @@ def scrape_places(search_for: str, total: int) -> List[Place]:
             
             previously_counted = 0
             no_change_count = 0
-            max_no_change = 5  # Allow 5 consecutive no-change iterations before giving up
+            max_no_change = 8  # Increased from 5 to 8 for more persistent scrolling
             
-            # Try to get at least the minimum requested results
-            target_results = max(total, 50)  # Always try to get at least 50 results, or more if requested
+            # Try to get at least the minimum requested results, but aim higher for buffer
+            target_results = max(total * 2, 100)  # Always try to get at least 2x requested or 100, whichever is higher
             
             while True:
-                page.mouse.wheel(0, 10000)
-                page.wait_for_timeout(2000)  # Wait longer for results to load
+                # More aggressive scrolling
+                page.mouse.wheel(0, 15000)  # Increased scroll distance
+                page.wait_for_timeout(3000)  # Increased wait time for results to load
                 page.wait_for_selector('//a[contains(@href, "https://www.google.com/maps/place")]')
                 found = page.locator('//a[contains(@href, "https://www.google.com/maps/place")]').count()
                 logging.info(f"Currently Found: {found} (Target: {target_results})")
@@ -150,41 +173,62 @@ def scrape_places(search_for: str, total: int) -> List[Place]:
                     if no_change_count >= max_no_change:
                         logging.info("Reached maximum attempts with no new results")
                         break
+                    # Try different scrolling pattern when stuck
+                    page.mouse.wheel(0, 20000)
+                    page.wait_for_timeout(2000)
+                    page.mouse.wheel(0, -5000)  # Scroll back up a bit
+                    page.wait_for_timeout(1000)
                 else:
                     no_change_count = 0  # Reset counter if we found new results
                     
                 previously_counted = found
                 
                 # Add some randomized scrolling to avoid detection
-                page.mouse.wheel(0, 5000)
-                page.wait_for_timeout(1000)
+                random_scroll = random.randint(8000, 12000)
+                page.mouse.wheel(0, random_scroll)
+                page.wait_for_timeout(random.randint(1000, 2000))
                 
             # Get all available listings, but ensure we have enough
             all_listings = page.locator('//a[contains(@href, "https://www.google.com/maps/place")]').all()
             
-            # Take more listings than requested to ensure we get enough valid results
-            max_to_process = max(len(all_listings), total * 2)  # Process up to 2x the requested amount
-            listings = [listing.locator("xpath=..") for listing in all_listings[:max_to_process]]
+            # Process ALL available listings to maximize results
+            listings = [listing.locator("xpath=..") for listing in all_listings]
             
             logging.info(f"Total Found: {len(listings)}, Processing all to ensure minimum {total} valid results")
             
             for idx, listing in enumerate(listings):
                 try:
+                    # Add more robust clicking and waiting
+                    page.wait_for_timeout(500)  # Small delay before clicking
                     listing.click()
-                    page.wait_for_selector('//div[@class="TIHn2 "]//h1[@class="DUwDvf lfPIob"]', timeout=10000)
-                    time.sleep(2)  # Give more time for details to load
+                    
+                    # Wait for the place details to load with multiple fallbacks
+                    try:
+                        page.wait_for_selector('//div[@class="TIHn2 "]//h1[@class="DUwDvf lfPIob"]', timeout=15000)
+                    except:
+                        # Try alternative selector if first one fails
+                        try:
+                            page.wait_for_selector('//h1[contains(@class, "DUwDvf")]', timeout=5000)
+                        except:
+                            logging.warning(f"Could not load details for listing {idx+1}, skipping")
+                            continue
+                    
+                    time.sleep(3)  # Give more time for all details to load
                     place = extract_place(page)
                     if place.name:
                         places.append(place)
                         logging.info(f"Extracted place {len(places)}: {place.name}")
-                        # Stop if we have enough valid results and have reached our minimum
-                        if len(places) >= total and len(places) >= 20:
-                            logging.info(f"Reached minimum target of {total} valid results")
+                        # Only stop if we have significantly more than requested to ensure we get enough
+                        # Remove the early stopping condition that was causing the issue
+                        if len(places) >= total * 1.5:  # Only stop if we have 50% more than requested
+                            logging.info(f"Exceeded target significantly: {len(places)} >= {total * 1.5}")
                             break
                     else:
                         logging.warning(f"No name found for listing {idx+1}, skipping.")
                 except Exception as e:
                     logging.warning(f"Failed to extract listing {idx+1}: {e}")
+                    # Try to recover by waiting and continuing
+                    page.wait_for_timeout(1000)
                     continue
                     
         finally:
