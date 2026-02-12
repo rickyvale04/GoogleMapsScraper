@@ -4,7 +4,7 @@ from playwright.sync_api import sync_playwright, Page
 from dataclasses import dataclass, asdict
 import pandas as pd
 import argparse
-import platform
+
 import time
 import os
 import random
@@ -109,33 +109,36 @@ def extract_place(page: Page) -> Place:
                 place.opens_at = opens_at2_raw.replace("\u202f","")
     return place
 
-def scrape_places(search_for: str, total: int) -> List[Place]:
+def scrape_places(search_for: str, total: int, headless: bool = True) -> List[Place]:
     setup_logging()
     places: List[Place] = []
     with sync_playwright() as p:
-        # Configure browser with more stable options
+        # Configure browser with anti-detection options
         browser_args = [
             '--no-sandbox',
             '--disable-dev-shm-usage',
             '--disable-blink-features=AutomationControlled',
             '--disable-web-security',
-            '--disable-features=VizDisplayCompositor'
+            '--disable-features=VizDisplayCompositor',
         ]
-        
-        if platform.system() == "Windows":
-            browser_path = r"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-            browser = p.chromium.launch(
-                executable_path=browser_path, 
-                headless=False,
-                args=browser_args
-            )
-        else:
-            browser = p.chromium.launch(
-                headless=False,
-                args=browser_args
-            )
-        
-        page = browser.new_page()
+
+        # Additional args for headless mode to improve stability and anti-detection
+        if headless:
+            browser_args.extend([
+                '--disable-gpu',
+                '--window-size=1920,1080',
+            ])
+
+        browser = p.chromium.launch(
+            headless=headless,
+            args=browser_args,
+        )
+
+        context = browser.new_context(
+            viewport={'width': 1920, 'height': 1080},
+            locale='en-US',
+        )
+        page = context.new_page()
         
         # Set longer timeouts
         page.set_default_timeout(30000)  # 30 seconds default timeout
@@ -232,6 +235,7 @@ def scrape_places(search_for: str, total: int) -> List[Place]:
                     continue
                     
         finally:
+            context.close()
             browser.close()
     
     logging.info(f"Final result: {len(places)} places extracted")
@@ -257,12 +261,13 @@ def main():
     parser.add_argument("-t", "--total", type=int, help="Minimum number of results to scrape")
     parser.add_argument("-o", "--output", type=str, default="result.csv", help="Output CSV file path")
     parser.add_argument("--append", action="store_true", help="Append results to the output file instead of overwriting")
+    parser.add_argument("--visible", action="store_true", default=False, help="Show browser window (headless by default)")
     args = parser.parse_args()
     search_for = args.search or "turkish stores in toronto Canada"
     total = args.total or 20  # Increased default minimum
     output_path = args.output
     append = args.append
-    places = scrape_places(search_for, total)
+    places = scrape_places(search_for, total, headless=not args.visible)
     save_places_to_csv(places, output_path, append=append)
 
 if __name__ == "__main__":

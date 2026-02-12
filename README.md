@@ -52,12 +52,16 @@ Vai su: `http://localhost:5000`
 2. **Imposta filtri** (opzionale): Es. "zona centro"
 3. **Scegli numero risultati**: Da 1 a 100
 4. **Clicca "Avvia Ricerca"**
-5. **Attendi i risultati** (il browser si aprirà automaticamente)
+5. **Attendi i risultati** (lo scraping avviene in background, senza aprire il browser)
 6. **Scarica CSV** con i dati estratti
 
 ### Linea di Comando
 ```bash
+# Scraping in background (headless - default)
 python3 main.py -s "agenzia di viaggi cinesi Milano" -t 20 -o risultati.csv
+
+# Scraping con browser visibile (per debug)
+python3 main.py -s "agenzia di viaggi cinesi Milano" -t 20 -o risultati.csv --visible
 ```
 
 ### API REST
@@ -96,6 +100,7 @@ Per ogni attività commerciale il tool estrae:
 - `query`: Termine di ricerca (es. "ristoranti Milano")
 - `maxResults`: Numero massimo risultati (1-100)
 - `filters`: Filtri aggiuntivi (opzionale)
+- `--visible`: Mostra il browser durante lo scraping (utile per debug)
 
 ### Personalizzazione
 Modifica `api_server.py` per:

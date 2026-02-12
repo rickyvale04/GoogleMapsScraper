@@ -14,8 +14,7 @@ try:
     with sync_playwright() as p:
         print("   Starting Chromium...")
         browser = p.chromium.launch(
-            headless=False,
-            slow_mo=1000  # Rallenta per vedere cosa succede
+            headless=True,
         )
         print("✅ Browser launched!")
         
@@ -26,8 +25,8 @@ try:
         page.goto("https://www.google.com", timeout=30000)
         print("✅ Google loaded!")
         
-        print("\n⏸️  Browser will stay open for 10 seconds...")
-        page.wait_for_timeout(10000)
+        print("\n⏸️  Verifying page loaded correctly...")
+        page.wait_for_timeout(2000)
         
         browser.close()
         print("✅ Browser closed")
