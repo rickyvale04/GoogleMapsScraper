@@ -83,7 +83,17 @@ else
 fi
 
 # ---- Controllo Playwright Chromium ----
-if ! $PYTHON -c "from playwright.sync_api import sync_playwright; p = sync_playwright().start(); b = p.chromium.launch(headless=True); b.close(); p.stop()" &>/dev/null 2>&1; then
+# Check if any Chromium binary exists in Playwright cache
+CHROMIUM_FOUND=0
+for dir in "$HOME/.cache/ms-playwright"/chromium-*/chrome-linux/chrome; do
+    if [ -x "$dir" ] 2>/dev/null; then
+        CHROMIUM_FOUND=1
+        echo "[OK] Playwright Chromium ready ($dir)"
+        break
+    fi
+done
+
+if [ $CHROMIUM_FOUND -eq 0 ]; then
     echo ""
     echo "Installing Playwright Chromium browser..."
     $PYTHON -m playwright install chromium || {
@@ -92,8 +102,6 @@ if ! $PYTHON -c "from playwright.sync_api import sync_playwright; p = sync_playw
         exit 1
     }
     echo "[OK] Chromium installed"
-else
-    echo "[OK] Playwright Chromium ready"
 fi
 
 # ---- Controllo porta ----

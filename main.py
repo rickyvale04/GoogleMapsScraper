@@ -4,7 +4,7 @@ from playwright.sync_api import sync_playwright, Page
 from dataclasses import dataclass, asdict
 import pandas as pd
 import argparse
-
+import glob
 import time
 import os
 import random
@@ -109,6 +109,28 @@ def extract_place(page: Page) -> Place:
                 place.opens_at = opens_at2_raw.replace("\u202f","")
     return place
 
+def find_chromium() -> Optional[str]:
+    """Find an available Chromium executable from Playwright cache."""
+    import platform
+    # Determine Playwright cache directory per platform
+    if platform.system() == "Windows":
+        cache_dir = os.path.join(os.environ.get("LOCALAPPDATA", ""), "ms-playwright")
+        sub_path = os.path.join("chrome-win", "chrome.exe")
+    else:
+        cache_dir = os.path.join(os.path.expanduser("~"), ".cache", "ms-playwright")
+        sub_path = os.path.join("chrome-linux", "chrome")
+
+    if os.path.isdir(cache_dir):
+        # Look for chromium-* dirs sorted by build number (newest first)
+        pattern = os.path.join(cache_dir, "chromium-*", sub_path)
+        matches = sorted(glob.glob(pattern), reverse=True)
+        for path in matches:
+            if os.path.isfile(path):
+                return path
+    # Fallback: let Playwright try its default (works if versions match)
+    return None
+
+
 def scrape_places(search_for: str, total: int, headless: bool = True) -> List[Place]:
     setup_logging()
     places: List[Place] = []
@@ -129,10 +151,18 @@ def scrape_places(search_for: str, total: int, headless: bool = True) -> List[Pl
                 '--window-size=1920,1080',
             ])
 
-        browser = p.chromium.launch(
-            headless=headless,
-            args=browser_args,
-        )
+        launch_options = {
+            'headless': headless,
+            'args': browser_args,
+        }
+
+        # Use auto-detected Chromium if Playwright's default version isn't installed
+        chromium_path = find_chromium()
+        if chromium_path:
+            launch_options['executable_path'] = chromium_path
+            logging.info(f"Using Chromium: {chromium_path}")
+
+        browser = p.chromium.launch(**launch_options)
 
         context = browser.new_context(
             viewport={'width': 1920, 'height': 1080},

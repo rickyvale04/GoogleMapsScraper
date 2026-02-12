@@ -91,8 +91,16 @@ if !MISSING! equ 1 (
 )
 
 :: ---- Controllo Playwright Chromium ----
-%PYTHON% -c "from playwright.sync_api import sync_playwright; p = sync_playwright().start(); b = p.chromium.launch(headless=True); b.close(); p.stop()" >nul 2>&1
-if errorlevel 1 (
+:: Check if any Chromium binary exists in Playwright cache
+set CHROMIUM_FOUND=0
+for /d %%d in ("%LOCALAPPDATA%\ms-playwright\chromium-*") do (
+    if exist "%%d\chrome-win\chrome.exe" (
+        set CHROMIUM_FOUND=1
+        echo [OK] Playwright Chromium ready ^(%%d^)
+    )
+)
+
+if !CHROMIUM_FOUND! equ 0 (
     echo.
     echo Installing Playwright Chromium browser...
     %PYTHON% -m playwright install chromium
@@ -103,8 +111,6 @@ if errorlevel 1 (
         exit /b 1
     )
     echo [OK] Chromium installed
-) else (
-    echo [OK] Playwright Chromium ready
 )
 
 :: ---- Controllo porta ----
