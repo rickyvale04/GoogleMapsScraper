@@ -43,7 +43,7 @@ python3 api_server.py
 ```
 
 ### 4. Apri l'interfaccia
-Vai su: `http://localhost:5000`
+Vai su: `http://localhost:5001`
 
 ## 🎯 Utilizzo
 
@@ -68,19 +68,19 @@ python3 main.py -s "agenzia di viaggi cinesi Milano" -t 20 -o risultati.csv --vi
 
 #### Avvia ricerca
 ```bash
-curl -X POST http://localhost:5000/api/search \
+curl -X POST http://localhost:5001/api/search \
   -H "Content-Type: application/json" \
   -d '{"query": "agenzia di viaggi cinesi Milano", "maxResults": 20}'
 ```
 
 #### Controlla stato
 ```bash
-curl http://localhost:5000/api/search/{search_id}/status
+curl http://localhost:5001/api/search/{search_id}/status
 ```
 
 #### Ottieni risultati
 ```bash
-curl http://localhost:5000/api/search/{search_id}/results
+curl http://localhost:5001/api/search/{search_id}/results
 ```
 
 ## 📊 Dati Estratti

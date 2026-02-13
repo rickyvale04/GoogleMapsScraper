@@ -85,13 +85,26 @@ fi
 # ---- Controllo Playwright Chromium ----
 # Check if any Chromium binary exists in Playwright cache
 CHROMIUM_FOUND=0
-for dir in "$HOME/.cache/ms-playwright"/chromium-*/chrome-linux/chrome; do
+
+# Check macOS path
+for dir in "$HOME/Library/Caches/ms-playwright"/chromium-*/chrome-mac/Chromium.app/Contents/MacOS/Chromium; do
     if [ -x "$dir" ] 2>/dev/null; then
         CHROMIUM_FOUND=1
         echo "[OK] Playwright Chromium ready ($dir)"
         break
     fi
 done
+
+# Check Linux path
+if [ $CHROMIUM_FOUND -eq 0 ]; then
+    for dir in "$HOME/.cache/ms-playwright"/chromium-*/chrome-linux/chrome; do
+        if [ -x "$dir" ] 2>/dev/null; then
+            CHROMIUM_FOUND=1
+            echo "[OK] Playwright Chromium ready ($dir)"
+            break
+        fi
+    done
+fi
 
 if [ $CHROMIUM_FOUND -eq 0 ]; then
     echo ""

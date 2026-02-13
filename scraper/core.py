@@ -42,9 +42,13 @@ def setup_logging():
 
 def find_chromium() -> Optional[str]:
     """Find an available Chromium executable from Playwright cache."""
-    if platform.system() == "Windows":
+    system = platform.system()
+    if system == "Windows":
         cache_dir = os.path.join(os.environ.get("LOCALAPPDATA", ""), "ms-playwright")
         sub_path = os.path.join("chrome-win", "chrome.exe")
+    elif system == "Darwin":
+        cache_dir = os.path.join(os.path.expanduser("~"), "Library", "Caches", "ms-playwright")
+        sub_path = os.path.join("chrome-mac", "Chromium.app", "Contents", "MacOS", "Chromium")
     else:
         cache_dir = os.path.join(os.path.expanduser("~"), ".cache", "ms-playwright")
         sub_path = os.path.join("chrome-linux", "chrome")
@@ -55,6 +59,7 @@ def find_chromium() -> Optional[str]:
         for path in matches:
             if os.path.isfile(path):
                 return path
+    # Fallback: let Playwright use its default
     return None
 
 
