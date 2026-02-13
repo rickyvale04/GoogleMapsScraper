@@ -10,7 +10,7 @@ import os
 import random
 
 from config import (
-    XPATHS, BROWSER_ARGS, HEADLESS_BROWSER_ARGS,
+    XPATHS, SEARCH_INPUT_SELECTORS, BROWSER_ARGS, HEADLESS_BROWSER_ARGS,
     DEFAULT_VIEWPORT, DEFAULT_LOCALE,
     DEFAULT_PAGE_TIMEOUT, NAVIGATION_TIMEOUT, PLACE_DETAIL_TIMEOUT,
     PLACE_DETAIL_FALLBACK_TIMEOUT, MAX_NO_CHANGE_SCROLLS,
@@ -99,11 +99,27 @@ def _do_extract_place(page: Page) -> Place:
     place.place_type = extract_text(page, XPATHS["place_type"])
     place.introduction = extract_text(page, XPATHS["introduction"]) or "None Found"
 
-    # Reviews Count
+    # Reviews Count — try text "(N)" first, then aria-label fallback
     reviews_count_raw = extract_text(page, XPATHS["reviews_count"])
+    if not reviews_count_raw:
+        # Fallback: extract count from aria-label like "2 948 avis" or "2,948 reviews"
+        try:
+            aria_loc = page.locator(XPATHS["reviews_count_aria"])
+            if aria_loc.count() > 0:
+                for i in range(aria_loc.count()):
+                    aria = aria_loc.nth(i).get_attribute("aria-label") or ""
+                    # Look for aria-labels containing review/avis keywords (not star ratings)
+                    if any(kw in aria.lower() for kw in ["avis", "review", "rezension", "recens"]):
+                        import re
+                        nums = re.sub(r'[^\d]', '', aria.replace('\xa0', '').replace('\u202f', ''))
+                        if nums:
+                            reviews_count_raw = nums
+                            break
+        except Exception:
+            pass
     if reviews_count_raw:
         try:
-            temp = reviews_count_raw.replace('\xa0', '').replace('(','').replace(')','').replace(',','')
+            temp = reviews_count_raw.replace('\xa0', '').replace('\u202f', '').replace('(','').replace(')','').replace(',','').replace('.','').replace(' ','')
             place.reviews_count = int(temp)
         except Exception as e:
             logging.warning(f"Failed to parse reviews count: {e}")
@@ -145,6 +161,19 @@ def _do_extract_place(page: Page) -> Place:
             else:
                 place.opens_at = opens_at2_raw.replace("\u202f","")
     return place
+
+def _find_search_input(page: Page):
+    """Find the search input using multiple selectors (Google changes these)."""
+    for selector in SEARCH_INPUT_SELECTORS:
+        try:
+            locator = page.locator(selector)
+            if locator.count() > 0 and locator.first.is_visible(timeout=2000):
+                logging.info(f"Found search input with: {selector}")
+                return locator.first
+        except Exception:
+            continue
+    raise Exception(f"Could not find search input. Tried: {SEARCH_INPUT_SELECTORS}")
+
 
 def _dismiss_consent(page: Page) -> None:
     """Dismiss Google cookie consent dialog if present."""
@@ -226,7 +255,9 @@ def scrape_places(
                     # Dismiss Google cookie consent dialog if present
                     _dismiss_consent(page)
 
-                    page.locator('//input[@id="searchboxinput"]').fill(search_for)
+                    # Find and fill the search input (selector varies by region/version)
+                    search_input = _find_search_input(page)
+                    search_input.fill(search_for)
                     page.keyboard.press("Enter")
                     page.wait_for_selector('//a[contains(@href, "https://www.google.com/maps/place")]')
                     page.hover('//a[contains(@href, "https://www.google.com/maps/place")]')

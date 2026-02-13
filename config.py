@@ -6,7 +6,8 @@ XPATHS = {
     "address": '//button[@data-item-id="address"]//div[contains(@class, "fontBodyMedium")]',
     "website": '//a[@data-item-id="authority"]//div[contains(@class, "fontBodyMedium")]',
     "phone_number": '//button[contains(@data-item-id, "phone:tel:")]//div[contains(@class, "fontBodyMedium")]',
-    "reviews_count": '//div[@class="TIHn2 "]//div[@class="fontBodyMedium dmRWX"]//div//span//span//span[@aria-label]',
+    "reviews_count": '//div[contains(@class, "F7nice")]//span[contains(text(), "(")]',
+    "reviews_count_aria": '//div[contains(@class, "F7nice")]//span[@role="img"][@aria-label]',
     "reviews_average": '//div[@class="TIHn2 "]//div[@class="fontBodyMedium dmRWX"]//div//span[@aria-hidden]',
     "info1": '//div[@class="LTs0Rc"][1]',
     "info2": '//div[@class="LTs0Rc"][2]',
@@ -16,6 +17,15 @@ XPATHS = {
     "place_type": '//div[@class="LBgpqf"]//button[@class="DkEaL "]',
     "introduction": '//div[@class="WeS02d fontBodyMedium"]//div[@class="PYvSYb "]',
 }
+
+# Search input selectors (tried in order; Google Maps changes these periodically)
+SEARCH_INPUT_SELECTORS = [
+    '#searchboxinput',
+    'input[name="q"]',
+    'input[aria-label*="Search"]',
+    'input[aria-label*="Cerca"]',
+    'input[aria-label*="Rechercher"]',
+]
 
 # Browser launch arguments
 BROWSER_ARGS = [
