@@ -11,8 +11,8 @@ def main():
     parser.add_argument("--append", action="store_true", help="Append results to the output file instead of overwriting")
     parser.add_argument("--headless", action="store_true", dest="headless", default=DEFAULT_HEADLESS,
                         help="Run browser in headless mode (no visible window)")
-    parser.add_argument("--no-headless", action="store_false", dest="headless",
-                        help="Run browser with visible window")
+    parser.add_argument("--no-headless", "--visible", action="store_false", dest="headless",
+                        help="Show browser window (visible mode, useful for debug)")
     parser.add_argument("--proxy", type=str, default=DEFAULT_PROXY,
                         help="Proxy server URL (e.g. http://user:pass@host:port)")
     args = parser.parse_args()

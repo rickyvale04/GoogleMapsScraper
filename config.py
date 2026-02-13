@@ -26,8 +26,15 @@ BROWSER_ARGS = [
     '--disable-features=VizDisplayCompositor',
 ]
 
-# Windows Chrome path
-WINDOWS_CHROME_PATH = r"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+# Additional browser args for headless mode (stability + anti-detection)
+HEADLESS_BROWSER_ARGS = [
+    '--disable-gpu',
+    '--window-size=1920,1080',
+]
+
+# Default browser viewport and locale
+DEFAULT_VIEWPORT = {'width': 1920, 'height': 1080}
+DEFAULT_LOCALE = 'en-US'
 
 # Timeouts (in milliseconds)
 DEFAULT_PAGE_TIMEOUT = 30000

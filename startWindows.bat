@@ -14,48 +14,123 @@ cd /d "%~dp0"
 echo Working directory: %CD%
 echo.
 
-:: Controlla se Python e' installato
-python --version >nul 2>&1
-if errorlevel 1 (
-    color 0C
-    echo ERROR: Python not found!
-    echo Please install Python 3.8+ from python.org
-    echo.
-    pause
-    exit /b 1
-)
-
-echo Python found: 
-python --version
+:: ---- Controllo Python ----
+echo Checking prerequisites...
 echo.
 
-:: Controlla se requirements e' installato
-python -c "import flask" >nul 2>&1
+python --version >nul 2>&1
 if errorlevel 1 (
-    echo Flask not found. Installing dependencies...
-    python -m pip install -r requirements.txt
-    python -m playwright install chromium
-    echo.
+    python3 --version >nul 2>&1
+    if errorlevel 1 (
+        color 0C
+        echo [ERROR] Python not found!
+        echo Please install Python 3.8+ from https://www.python.org/downloads/
+        echo.
+        echo Make sure to check "Add Python to PATH" during installation.
+        echo.
+        pause
+        exit /b 1
+    )
+    set PYTHON=python3
+) else (
+    set PYTHON=python
 )
 
-:: Attiva virtual environment se esiste
+for /f "tokens=*" %%i in ('%PYTHON% --version 2^>^&1') do set PY_VERSION=%%i
+echo [OK] %PY_VERSION%
+
+:: ---- Controllo pip ----
+%PYTHON% -m pip --version >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] pip not found! Installing pip...
+    %PYTHON% -m ensurepip --upgrade >nul 2>&1
+    if errorlevel 1 (
+        echo Failed to install pip automatically.
+        echo Please reinstall Python with pip enabled.
+        pause
+        exit /b 1
+    )
+)
+echo [OK] pip available
+
+:: ---- Virtual environment ----
+if not exist ".venv" (
+    echo.
+    echo Creating virtual environment...
+    %PYTHON% -m venv .venv
+    if errorlevel 1 (
+        echo [WARNING] Could not create venv, continuing without it...
+    )
+)
+
 if exist ".venv\Scripts\activate.bat" (
-    echo Activating virtual environment...
+    echo [OK] Activating virtual environment...
     call .venv\Scripts\activate.bat
-    echo.
 )
 
-:: Controlla se la porta 5001 e' gia' in uso
+:: ---- Controllo dipendenze Python ----
+set MISSING=0
+for %%p in (flask playwright pandas openpyxl numpy) do (
+    %PYTHON% -c "import %%p" >nul 2>&1
+    if errorlevel 1 set MISSING=1
+)
+
+if !MISSING! equ 1 (
+    echo.
+    echo Installing Python dependencies...
+    %PYTHON% -m pip install -r requirements.txt
+    if errorlevel 1 (
+        color 0C
+        echo [ERROR] Failed to install dependencies!
+        pause
+        exit /b 1
+    )
+    echo [OK] Dependencies installed
+) else (
+    echo [OK] All Python dependencies installed
+)
+
+:: ---- Controllo Playwright Chromium ----
+:: Check if any Chromium binary exists in Playwright cache
+set CHROMIUM_FOUND=0
+for /d %%d in ("%LOCALAPPDATA%\ms-playwright\chromium-*") do (
+    if exist "%%d\chrome-win\chrome.exe" (
+        set CHROMIUM_FOUND=1
+        echo [OK] Playwright Chromium ready ^(%%d^)
+    )
+)
+
+if !CHROMIUM_FOUND! equ 0 (
+    echo.
+    echo Installing Playwright Chromium browser...
+    %PYTHON% -m playwright install chromium
+    if errorlevel 1 (
+        color 0C
+        echo [ERROR] Failed to install Chromium!
+        pause
+        exit /b 1
+    )
+    echo [OK] Chromium installed
+)
+
+:: ---- Controllo porta ----
 netstat -ano | findstr :5001 >nul
 if not errorlevel 1 (
     color 0E
-    echo WARNING: Port 5001 is already in use!
+    echo.
+    echo [WARNING] Port 5001 is already in use!
     echo Please close the other server or change the port.
     echo.
     pause
     exit /b 1
 )
 
+:: ---- Avvio server ----
+echo.
+echo ==========================================
+echo   All checks passed!
+echo ==========================================
+echo.
 echo Starting server...
 echo.
 echo Interface available at:
@@ -69,13 +144,13 @@ echo.
 start "" cmd /c "timeout /t 3 /nobreak >nul && start http://localhost:5001"
 
 :: Avvia il server
-python api_server.py
+%PYTHON% api_server.py
 
 :: Se il server si ferma
 echo.
 if errorlevel 1 (
     color 0C
-    echo ERROR: Server crashed!
+    echo [ERROR] Server crashed!
 ) else (
     color 0A
     echo Server stopped successfully.

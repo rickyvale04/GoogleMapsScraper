@@ -1,4 +1,5 @@
 import logging
+import glob as globmod
 from typing import List, Optional
 from playwright.sync_api import sync_playwright, Page
 from dataclasses import dataclass, asdict
@@ -9,7 +10,8 @@ import os
 import random
 
 from config import (
-    XPATHS, BROWSER_ARGS, WINDOWS_CHROME_PATH,
+    XPATHS, BROWSER_ARGS, HEADLESS_BROWSER_ARGS,
+    DEFAULT_VIEWPORT, DEFAULT_LOCALE,
     DEFAULT_PAGE_TIMEOUT, NAVIGATION_TIMEOUT, PLACE_DETAIL_TIMEOUT,
     PLACE_DETAIL_FALLBACK_TIMEOUT, MAX_NO_CHANGE_SCROLLS,
     SCROLL_WAIT_MS, DETAIL_LOAD_WAIT_SEC, MAPS_START_URL,
@@ -37,6 +39,24 @@ def setup_logging():
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
     )
+
+def find_chromium() -> Optional[str]:
+    """Find an available Chromium executable from Playwright cache."""
+    if platform.system() == "Windows":
+        cache_dir = os.path.join(os.environ.get("LOCALAPPDATA", ""), "ms-playwright")
+        sub_path = os.path.join("chrome-win", "chrome.exe")
+    else:
+        cache_dir = os.path.join(os.path.expanduser("~"), ".cache", "ms-playwright")
+        sub_path = os.path.join("chrome-linux", "chrome")
+
+    if os.path.isdir(cache_dir):
+        pattern = os.path.join(cache_dir, "chromium-*", sub_path)
+        matches = sorted(globmod.glob(pattern), reverse=True)
+        for path in matches:
+            if os.path.isfile(path):
+                return path
+    return None
+
 
 def extract_text(page: Page, xpath: str) -> str:
     try:
@@ -132,19 +152,32 @@ def scrape_places(
     seen: set = set()  # (name, address) deduplication
 
     with sync_playwright() as p:
+        browser_args = list(BROWSER_ARGS)
+        if headless:
+            browser_args.extend(HEADLESS_BROWSER_ARGS)
+
         launch_kwargs = {
             "headless": headless,
-            "args": BROWSER_ARGS,
+            "args": browser_args,
         }
-        if platform.system() == "Windows":
-            launch_kwargs["executable_path"] = WINDOWS_CHROME_PATH
+
+        # Auto-detect Chromium binary for cross-version compatibility
+        chromium_path = find_chromium()
+        if chromium_path:
+            launch_kwargs["executable_path"] = chromium_path
+            logging.info(f"Using Chromium: {chromium_path}")
+
         if proxy:
             launch_kwargs["proxy"] = {"server": proxy}
 
         browser = p.chromium.launch(**launch_kwargs)
 
         user_agent = random.choice(USER_AGENTS)
-        context = browser.new_context(user_agent=user_agent)
+        context = browser.new_context(
+            user_agent=user_agent,
+            viewport=DEFAULT_VIEWPORT,
+            locale=DEFAULT_LOCALE,
+        )
         page = context.new_page()
         page.set_default_timeout(DEFAULT_PAGE_TIMEOUT)
 

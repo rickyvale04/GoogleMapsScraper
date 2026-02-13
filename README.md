@@ -52,12 +52,16 @@ Vai su: `http://localhost:5000`
 2. **Imposta filtri** (opzionale): Es. "zona centro"
 3. **Scegli numero risultati**: Da 1 a 100
 4. **Clicca "Avvia Ricerca"**
-5. **Attendi i risultati** (il browser si aprirà automaticamente)
+5. **Attendi i risultati** (lo scraping avviene in background, senza aprire il browser)
 6. **Scarica CSV** con i dati estratti
 
 ### Linea di Comando
 ```bash
+# Scraping in background (headless - default)
 python3 main.py -s "agenzia di viaggi cinesi Milano" -t 20 -o risultati.csv
+
+# Scraping con browser visibile (per debug)
+python3 main.py -s "agenzia di viaggi cinesi Milano" -t 20 -o risultati.csv --visible
 ```
 
 ### API REST
@@ -96,24 +100,38 @@ Per ogni attività commerciale il tool estrae:
 - `query`: Termine di ricerca (es. "ristoranti Milano")
 - `maxResults`: Numero massimo risultati (1-100)
 - `filters`: Filtri aggiuntivi (opzionale)
+- `--visible`: Mostra il browser durante lo scraping (utile per debug)
+- `--proxy`: URL del proxy server (es. `http://user:pass@host:port`)
 
 ### Personalizzazione
-Modifica `api_server.py` per:
+Modifica `config.py` per:
 - Cambiare porta del server
-- Aggiungere nuovi endpoint
-- Personalizzare timeout
+- Configurare XPath selectors
+- Personalizzare timeout, User-Agent, proxy
 
 ## 📁 Struttura Progetto
 
 ```
 GoogleMapsScraper/
-├── 📄 main.py              # Script principale per scraping
-├── 🌐 api_server.py        # Server Flask con API
-├── 🎨 web-interface.html   # Interfaccia web moderna
+├── 📄 main.py              # CLI entry point
+├── 🌐 api_server.py        # Server entry point (backward compat)
+├── ⚙️ config.py            # Configurazione centralizzata
 ├── 📋 requirements.txt     # Dipendenze Python
-├── 📁 memory-bank/         # Sistema di documentazione
-├── 📊 result.csv          # Risultati di esempio
-└── 📖 README.md           # Documentazione
+├── 📁 scraper/             # Package scraping
+│   ├── __init__.py
+│   └── core.py             # Logica di scraping (Place, extract, scrape)
+├── 📁 api/                 # Package API server
+│   ├── __init__.py
+│   └── server.py           # Flask API con import diretti
+├── 📁 static/              # File statici
+│   └── web-interface.html  # Interfaccia web
+├── 📁 tests/               # Test suite (pytest)
+│   ├── conftest.py
+│   ├── test_config.py
+│   ├── test_extract.py
+│   ├── test_scrape.py
+│   └── test_api.py
+└── 📖 README.md
 ```
 
 ## 🛠️ Sviluppo
