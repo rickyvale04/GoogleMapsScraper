@@ -146,6 +146,36 @@ def _do_extract_place(page: Page) -> Place:
                 place.opens_at = opens_at2_raw.replace("\u202f","")
     return place
 
+def _dismiss_consent(page: Page) -> None:
+    """Dismiss Google cookie consent dialog if present."""
+    # Common consent button selectors across Google consent forms
+    consent_selectors = [
+        # "Accept all" buttons (various languages/forms)
+        'button[aria-label="Accept all"]',
+        'button[aria-label="Accetta tutto"]',
+        'button[aria-label="Tout accepter"]',
+        'button[aria-label="Alle akzeptieren"]',
+        # Form-based consent buttons
+        '//button[contains(text(), "Accept all")]',
+        '//button[contains(text(), "Accetta tutto")]',
+        '//button[contains(text(), "Reject all")]',
+        '//button[contains(text(), "Rifiuta tutto")]',
+        # Generic consent dialog buttons
+        '[action="https://consent.google.com/save"] button',
+        'form[action*="consent"] button:first-of-type',
+    ]
+    for selector in consent_selectors:
+        try:
+            locator = page.locator(selector).first
+            if locator.is_visible(timeout=2000):
+                locator.click()
+                logging.info(f"Dismissed consent dialog with: {selector}")
+                page.wait_for_load_state("domcontentloaded")
+                return
+        except Exception:
+            continue
+
+
 def scrape_places(
     search_for: str,
     total: int,
@@ -192,6 +222,10 @@ def scrape_places(
                 try:
                     page.goto(MAPS_START_URL, timeout=NAVIGATION_TIMEOUT)
                     page.wait_for_load_state("domcontentloaded")
+
+                    # Dismiss Google cookie consent dialog if present
+                    _dismiss_consent(page)
+
                     page.locator('//input[@id="searchboxinput"]').fill(search_for)
                     page.keyboard.press("Enter")
                     page.wait_for_selector('//a[contains(@href, "https://www.google.com/maps/place")]')
