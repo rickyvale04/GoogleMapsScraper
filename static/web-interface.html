@@ -213,16 +213,16 @@
             body {
                 padding: 10px;
             }
-            
+
             .results-table {
                 font-size: 10px;
             }
-            
+
             .results-table th,
             .results-table td {
                 padding: 5px;
             }
-            
+
             .btn {
                 padding: 8px 16px;
                 margin-bottom: 10px;
@@ -261,14 +261,14 @@
         <!-- Commands section -->
         <div class="command-section">
             <h2>🔍 Search Commands</h2>
-            
+
             <!-- Main input for query -->
             <div class="input-group">
                 <label class="input-label" for="searchQuery">Search query:</label>
-                <input 
-                    type="text" 
-                    id="searchQuery" 
-                    class="command-input" 
+                <input
+                    type="text"
+                    id="searchQuery"
+                    class="command-input"
                     placeholder="e.g. 'chinese travel agency Milan', 'sushi restaurants Rome', 'pharmacies Turin'"
                     value="chinese travel agency Milan"
                 >
@@ -277,10 +277,10 @@
             <!-- City selection -->
             <div class="input-group">
                 <label class="input-label" for="cities">Target cities (comma-separated):</label>
-                <input 
-                    type="text" 
-                    id="cities" 
-                    class="command-input" 
+                <input
+                    type="text"
+                    id="cities"
+                    class="command-input"
                     placeholder="e.g. 'Milan, Rome, Naples' or 'New York, Los Angeles, Chicago'"
                     value="Milan, Rome"
                 >
@@ -289,10 +289,10 @@
             <!-- Additional filters -->
             <div class="input-group">
                 <label class="input-label" for="filters">Additional filters (optional):</label>
-                <input 
-                    type="text" 
-                    id="filters" 
-                    class="command-input" 
+                <input
+                    type="text"
+                    id="filters"
+                    class="command-input"
                     placeholder="e.g. 'downtown area', 'with website', 'open on Sunday'"
                 >
             </div>
@@ -300,12 +300,12 @@
             <!-- Number of results -->
             <div class="input-group">
                 <label class="input-label" for="maxResults">Minimum number of results:</label>
-                <input 
-                    type="number" 
-                    id="maxResults" 
-                    class="command-input" 
-                    value="20" 
-                    min="1" 
+                <input
+                    type="number"
+                    id="maxResults"
+                    class="command-input"
+                    value="20"
+                    min="1"
                     max="200"
                 >
             </div>
@@ -335,7 +335,7 @@
                 <div class="results-title">📊 Search Results</div>
                 <div class="results-count" id="resultsCount">0 results found</div>
             </div>
-            
+
             <!-- Results table -->
             <div style="overflow-x: auto;">
                 <table class="results-table" id="resultsTable">
@@ -372,7 +372,7 @@
             const maxResults = parseInt(document.getElementById('maxResults').value) || 20;
             const filters = document.getElementById('filters').value.trim();
             const cities = document.getElementById('cities').value.trim();
-            
+
             if (!query) {
                 showStatus('Enter a valid search query', 'error');
                 return;
@@ -383,10 +383,9 @@
                 return;
             }
 
-            // Simulate search process
             showStatus('🔍 Starting Google Maps search across selected cities...', 'searching');
             document.getElementById('searchBtn').disabled = true;
-            
+
             // Call the real API
             fetch('/api/search', {
                 method: 'POST',
@@ -407,10 +406,10 @@
                     document.getElementById('searchBtn').disabled = false;
                     return;
                 }
-                
+
                 currentSearchId = data.search_id;
                 showStatus('🔍 Search in progress across multiple cities... This may take several minutes.', 'searching');
-                
+
                 // Start polling to check status
                 startPolling();
             })
@@ -428,11 +427,11 @@
             if (pollInterval) {
                 clearInterval(pollInterval);
             }
-            
+
             pollInterval = setInterval(() => {
                 checkSearchStatus();
             }, 3000); // Check every 3 seconds
-            
+
             // First immediate check
             checkSearchStatus();
         }
@@ -442,7 +441,7 @@
          */
         function checkSearchStatus() {
             if (!currentSearchId) return;
-            
+
             fetch(`/api/search/${currentSearchId}/status`)
             .then(response => response.json())
             .then(data => {
@@ -479,22 +478,22 @@
          */
         function getSearchResults() {
             if (!currentSearchId) return;
-            
+
             fetch(`/api/search/${currentSearchId}/results`)
             .then(response => response.json())
             .then(data => {
                 clearInterval(pollInterval);
-                
+
                 if (data.error) {
                     showStatus(`❌ Error: ${data.error}`, 'error');
                     document.getElementById('searchBtn').disabled = false;
                     return;
                 }
-                
+
                 currentResults = data.results || [];
                 displayResults(currentResults, data.query);
                 showStatus(`✅ Search completed: ${currentResults.length} results found from Google Maps`, 'success');
-                
+
                 document.getElementById('searchBtn').disabled = false;
                 document.getElementById('downloadBtn').disabled = false;
             })
@@ -512,49 +511,19 @@
         function clearResults() {
             currentResults = [];
             currentSearchId = null;
-            
+
             // Stop polling if active
             if (pollInterval) {
                 clearInterval(pollInterval);
                 pollInterval = null;
             }
-            
+
             document.getElementById('resultsSection').classList.add('hidden');
             document.getElementById('status').classList.add('hidden');
             document.getElementById('downloadBtn').disabled = true;
             document.getElementById('searchQuery').value = '';
             document.getElementById('filters').value = '';
             document.getElementById('searchBtn').disabled = false;
-        }        /**
-         * Generate mock results for non-predefined queries
-         */
-        function generateMockResults(query, count) {
-            const results = [];
-            const businessTypes = ['Business', 'Store', 'Service', 'Restaurant', 'Shop', 'Office', 'Agency', 'Center'];
-            const streets = ['Via Roma', 'Corso Italia', 'Via Milano', 'Piazza Duomo', 'Via Garibaldi', 'Corso Venezia', 'Via Torino', 'Via Napoli', 'Corso Buenos Aires', 'Via Dante', 'Via Manzoni', 'Via Verdi', 'Piazza San Marco', 'Via del Corso', 'Via Nazionale'];
-            const cities = ['Milano MI', 'Roma RM', 'Torino TO', 'Napoli NA', 'Firenze FI', 'Bologna BO', 'Venezia VE', 'Genova GE'];
-            const domains = ['com', 'it', 'net', 'org', 'eu'];
-            
-            for (let i = 1; i <= count; i++) {
-                const randomStreet = streets[Math.floor(Math.random() * streets.length)];
-                const randomCity = cities[Math.floor(Math.random() * cities.length)];
-                const randomType = businessTypes[Math.floor(Math.random() * businessTypes.length)];
-                const randomDomain = domains[Math.floor(Math.random() * domains.length)];
-                const randomReviews = Math.floor(Math.random() * 1000) + 1;
-                const hasWebsite = Math.random() > 0.3; // 70% chance of having a website
-                const randomHour = Math.floor(Math.random() * 4) + 6; // Between 6pm and 9pm
-                
-                results.push({
-                    name: `${query.charAt(0).toUpperCase() + query.slice(1)} ${randomType} ${i}`,
-                    address: `${randomStreet}, ${Math.floor(Math.random() * 200) + 1}, ${randomCity}, Italy`,
-                    phone: `+39 ${Math.floor(Math.random() * 9) + 1}${Math.floor(Math.random() * 9)} ${Math.floor(Math.random() * 9000) + 1000} ${Math.floor(Math.random() * 9000) + 1000}`,
-                    website: hasWebsite ? `${query.replace(/\s+/g, '').toLowerCase()}${i}.${randomDomain}` : '-',
-                    type: randomType,
-                    reviews: `${randomReviews} recensioni`,
-                    hours: `Closes ${randomHour}${Math.random() > 0.5 ? ':30' : ''}pm`
-                });
-            }
-            return results;
         }
 
         /**
@@ -564,10 +533,10 @@
             const resultsSection = document.getElementById('resultsSection');
             const resultsBody = document.getElementById('resultsBody');
             const resultsCount = document.getElementById('resultsCount');
-            
+
             // Clear previous results
             resultsBody.innerHTML = '';
-            
+
             // Add new results
             results.forEach(result => {
                 const row = document.createElement('tr');
@@ -583,7 +552,7 @@
                 `;
                 resultsBody.appendChild(row);
             });
-            
+
             // Update counter and show results section
             resultsCount.textContent = `${results.length} results found for "${query}"`;
             resultsSection.classList.remove('hidden');
@@ -597,7 +566,7 @@
             status.textContent = message;
             status.className = `status ${type}`;
             status.classList.remove('hidden');
-            
+
             // Automatically hide after 5 seconds if not loading
             if (type !== 'searching') {
                 setTimeout(() => {
@@ -641,21 +610,8 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
-            showStatus('📥 CSV file downloaded successfully!', 'success');
-        }
 
-        /**
-         * Clear results
-         */
-        function clearResults() {
-            currentResults = [];
-            document.getElementById('resultsSection').classList.add('hidden');
-            document.getElementById('status').classList.add('hidden');
-            document.getElementById('downloadBtn').disabled = true;
-            document.getElementById('searchQuery').value = '';
-            document.getElementById('filters').value = '';
-            document.getElementById('cities').value = '';
+            showStatus('📥 CSV file downloaded successfully!', 'success');
         }
 
         // Event listeners to improve usability
@@ -666,19 +622,19 @@
                     startSearch();
                 }
             });
-            
+
             document.getElementById('filters').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     startSearch();
                 }
             });
-            
+
             document.getElementById('cities').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     startSearch();
                 }
             });
-            
+
             document.getElementById('maxResults').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     startSearch();
