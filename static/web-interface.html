@@ -248,6 +248,115 @@
         .hidden {
             display: none;
         }
+
+        /* How It Works section */
+        .help-section {
+            border: 1px solid #00ff00;
+            padding: 0;
+            margin-bottom: 20px;
+            background-color: #000;
+        }
+
+        .help-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .help-header:hover {
+            background-color: #111;
+        }
+
+        .help-header h2 {
+            color: #00ff00;
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .help-toggle {
+            color: #00ff00;
+            font-size: 14px;
+        }
+
+        .help-content {
+            padding: 0 20px 20px 20px;
+            border-top: 1px solid #333;
+            display: none;
+        }
+
+        .help-content.open {
+            display: block;
+        }
+
+        .help-content ol {
+            list-style: none;
+            counter-reset: steps;
+            padding: 15px 0 0 0;
+        }
+
+        .help-content ol li {
+            counter-increment: steps;
+            margin-bottom: 10px;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .help-content ol li::before {
+            content: counter(steps) ". ";
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        .help-tip {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid #666;
+            background-color: #111;
+            color: #888;
+            font-size: 13px;
+        }
+
+        /* Input hints */
+        .input-hint {
+            color: #666;
+            font-size: 12px;
+            margin-top: 3px;
+            margin-bottom: 2px;
+        }
+
+        /* Quick example buttons */
+        .example-buttons {
+            margin-top: 6px;
+        }
+
+        .btn-example {
+            background-color: #000;
+            border: 1px solid #666;
+            color: #888;
+            padding: 4px 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            margin-right: 8px;
+            margin-top: 4px;
+            transition: all 0.2s;
+        }
+
+        .btn-example:hover {
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+
+        /* ASCII progress bar */
+        .progress-bar-container {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+        }
     </style>
 </head>
 <body>
@@ -256,6 +365,23 @@
         <div class="header">
             <h1>🗺️ Google Maps Scraper - Web Interface</h1>
             <div class="subtitle">REAL Google Maps Search with Playwright | Interface connected to scraping system</div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="help-section">
+            <div class="help-header" onclick="toggleHelp()">
+                <h2>? How It Works</h2>
+                <span class="help-toggle" id="helpToggle">[+] show</span>
+            </div>
+            <div class="help-content" id="helpContent">
+                <ol>
+                    <li>Enter a search query describing the type of business you want to find</li>
+                    <li>Enter one or more target cities, separated by commas</li>
+                    <li>Click "Start Search" to launch the Google Maps scraper</li>
+                    <li>Download the results as a CSV file when the search is complete</li>
+                </ol>
+                <div class="help-tip">TIP: Start with 10-20 results per search to get fast results. You can always run more searches later.</div>
+            </div>
         </div>
 
         <!-- Commands section -->
@@ -270,8 +396,13 @@
                     id="searchQuery"
                     class="command-input"
                     placeholder="e.g. 'chinese travel agency Milan', 'sushi restaurants Rome', 'pharmacies Turin'"
-                    value="chinese travel agency Milan"
                 >
+                <div class="input-hint">What type of business are you looking for?</div>
+                <div class="example-buttons">
+                    <button type="button" class="btn-example" onclick="fillExample('pizza')">Pizza in US</button>
+                    <button type="button" class="btn-example" onclick="fillExample('dentists')">Dentists in UK</button>
+                    <button type="button" class="btn-example" onclick="fillExample('agenzie')">Agenzie viaggi IT</button>
+                </div>
             </div>
 
             <!-- City selection -->
@@ -282,8 +413,8 @@
                     id="cities"
                     class="command-input"
                     placeholder="e.g. 'Milan, Rome, Naples' or 'New York, Los Angeles, Chicago'"
-                    value="Milan, Rome"
                 >
+                <div class="input-hint">Separate multiple cities with commas. English names work best.</div>
             </div>
 
             <!-- Additional filters -->
@@ -295,6 +426,7 @@
                     class="command-input"
                     placeholder="e.g. 'downtown area', 'with website', 'open on Sunday'"
                 >
+                <div class="input-hint">Optional. Narrow by area, feature, or hours.</div>
             </div>
 
             <!-- Number of results -->
@@ -308,6 +440,7 @@
                     min="1"
                     max="200"
                 >
+                <div class="input-hint">More results = longer search. Start with 10-20.</div>
             </div>
 
             <!-- Control buttons -->
@@ -383,7 +516,11 @@
                 return;
             }
 
-            showStatus('🔍 Starting Google Maps search across selected cities...', 'searching');
+            // Calculate and show time estimate
+            const cityList = cities.split(',').map(c => c.trim()).filter(c => c.length > 0);
+            const cityCount = cityList.length;
+            const estMinutes = cityCount * 2 + '-' + cityCount * 3;
+            showStatus(`🔍 Starting Google Maps search across selected cities...\nEstimated time: ~${estMinutes} minutes for ${cityCount} ${cityCount === 1 ? 'city' : 'cities'}`, 'searching');
             document.getElementById('searchBtn').disabled = true;
 
             // Call the real API
@@ -461,6 +598,20 @@
                     }
                     if (data.progress) {
                         statusMsg += ` | Results: ${data.progress}`;
+                        // Build ASCII progress bar
+                        const parts = data.progress.split('/');
+                        if (parts.length === 2) {
+                            const current = parseInt(parts[0]);
+                            const total = parseInt(parts[1]);
+                            if (total > 0) {
+                                const pct = Math.min(Math.round((current / total) * 100), 100);
+                                const barLen = 20;
+                                const filled = Math.round((pct / 100) * barLen);
+                                const empty = barLen - filled;
+                                const bar = '#'.repeat(filled) + '-'.repeat(empty);
+                                statusMsg += `\n[${bar}] ${pct}% | ${current}/${total} results`;
+                            }
+                        }
                     }
                     showStatus(statusMsg, 'searching');
                 }
@@ -563,7 +714,9 @@
          */
         function showStatus(message, type = '') {
             const status = document.getElementById('status');
-            status.textContent = message;
+            // Use textContent for safety, but replace newlines with <br> for display
+            const escaped = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            status.innerHTML = escaped.replace(/\n/g, '<br>');
             status.className = `status ${type}`;
             status.classList.remove('hidden');
 
@@ -612,6 +765,32 @@
             document.body.removeChild(link);
 
             showStatus('📥 CSV file downloaded successfully!', 'success');
+        }
+
+        /**
+         * Toggle the How It Works help section
+         */
+        function toggleHelp() {
+            const content = document.getElementById('helpContent');
+            const toggle = document.getElementById('helpToggle');
+            const isOpen = content.classList.toggle('open');
+            toggle.textContent = isOpen ? '[-] hide' : '[+] show';
+        }
+
+        /**
+         * Fill form with example data
+         */
+        function fillExample(type) {
+            const examples = {
+                pizza: { query: 'pizza restaurants', cities: 'New York, Chicago, Los Angeles' },
+                dentists: { query: 'dentists', cities: 'London, Manchester, Birmingham' },
+                agenzie: { query: 'agenzie di viaggi', cities: 'Milano, Roma, Napoli' }
+            };
+            const ex = examples[type];
+            if (ex) {
+                document.getElementById('searchQuery').value = ex.query;
+                document.getElementById('cities').value = ex.cities;
+            }
         }
 
         // Event listeners to improve usability

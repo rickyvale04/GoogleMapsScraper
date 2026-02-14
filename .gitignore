@@ -93,8 +93,9 @@ Thumbs.db
 
 # Temporary files
 temp_*
-tmp_*pycache__/
+tmp_*
 *.pyc
 result.csv
 output.csv
-playwright/.cache/ 
+playwright/.cache/
+.gms_initialized
