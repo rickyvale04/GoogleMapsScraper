@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Maps Scraper - Web Interface</title>
+    <title>Google Maps Scraper</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Reset e base styling */
+        /* Reset & base */
         * {
             margin: 0;
             padding: 0;
@@ -13,12 +16,12 @@
         }
 
         body {
-            font-family: 'Courier New', monospace;
-            background-color: #1a1a1a;
-            color: #00ff00;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #1a1a1a;
             line-height: 1.6;
             min-height: 100vh;
-            padding: 20px;
+            padding: 24px;
         }
 
         .container {
@@ -26,156 +29,276 @@
             margin: 0 auto;
         }
 
-        /* Header stile terminale */
+        /* Header */
         .header {
-            border: 1px solid #00ff00;
-            padding: 20px;
-            margin-bottom: 20px;
-            background-color: #000;
+            padding: 32px 0 24px;
+            margin-bottom: 24px;
         }
 
         .header h1 {
-            color: #00ff00;
-            font-size: 24px;
-            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 6px;
         }
 
         .header .subtitle {
-            color: #888;
-            font-size: 14px;
+            color: #6b7280;
+            font-size: 15px;
+            font-weight: 400;
         }
 
-        /* Sezione comandi */
-        .command-section {
-            border: 1px solid #00ff00;
-            padding: 20px;
+        /* Card */
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 24px;
             margin-bottom: 20px;
-            background-color: #000;
         }
 
-        .command-section h2 {
-            color: #00ff00;
-            margin-bottom: 15px;
+        .card h2 {
             font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 20px;
         }
 
-        /* Input stile command line */
+        /* Input groups */
         .input-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .input-label {
-            color: #00ff00;
             font-size: 14px;
-            margin-bottom: 5px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 6px;
             display: block;
         }
 
         .command-input {
             width: 100%;
-            background-color: #000;
-            border: 1px solid #00ff00;
-            color: #00ff00;
-            padding: 10px;
-            font-family: 'Courier New', monospace;
+            background-color: #f3f4f6;
+            border: 1.5px solid #e5e7eb;
+            color: #1a1a1a;
+            padding: 10px 14px;
+            font-family: 'Inter', sans-serif;
             font-size: 14px;
+            border-radius: 8px;
             outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
 
         .command-input:focus {
-            border-color: #00ffff;
-            box-shadow: 0 0 5px #00ffff;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
         }
 
         .command-input::placeholder {
-            color: #666;
+            color: #9ca3af;
         }
 
-        /* Bottoni stile terminale */
+        .input-hint {
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        /* Buttons */
         .btn {
-            background-color: #000;
-            border: 1px solid #00ff00;
-            color: #00ff00;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #2563eb;
+            border: none;
+            color: #ffffff;
             padding: 10px 20px;
-            font-family: 'Courier New', monospace;
+            font-family: 'Inter', sans-serif;
             font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
             cursor: pointer;
             margin-right: 10px;
-            transition: all 0.2s;
+            transition: background-color 0.15s, opacity 0.15s;
         }
 
         .btn:hover {
-            background-color: #00ff00;
-            color: #000;
+            background-color: #1d4ed8;
         }
 
         .btn:disabled {
-            border-color: #666;
-            color: #666;
+            background-color: #d1d5db;
+            color: #9ca3af;
             cursor: not-allowed;
         }
 
         .btn:disabled:hover {
-            background-color: #000;
-            color: #666;
+            background-color: #d1d5db;
         }
 
-        /* Sezione risultati */
-        .results-section {
-            border: 1px solid #00ff00;
-            background-color: #000;
+        .btn-secondary {
+            background-color: transparent;
+            color: #374151;
+            border: 1.5px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f3f4f6;
+        }
+
+        .btn-secondary:disabled {
+            background-color: transparent;
+            color: #9ca3af;
+            border-color: #e5e7eb;
+        }
+
+        /* Example buttons */
+        .example-buttons {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .btn-example {
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            color: #6b7280;
+            padding: 4px 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-example:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+            background-color: #eff6ff;
+        }
+
+        /* Status */
+        .status {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 16px 20px;
             margin-bottom: 20px;
+            font-size: 14px;
+            color: #6b7280;
+            border-left: 4px solid #d1d5db;
+        }
+
+        .status.searching {
+            border-left-color: #d97706;
+            color: #92400e;
+            background-color: #fffbeb;
+        }
+
+        .status.success {
+            border-left-color: #16a34a;
+            color: #166534;
+            background-color: #f0fdf4;
+        }
+
+        .status.error {
+            border-left-color: #dc2626;
+            color: #991b1b;
+            background-color: #fef2f2;
+        }
+
+        /* Progress bar */
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 999px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #2563eb;
+            border-radius: 999px;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .progress-text {
+            font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+
+        /* Results section */
+        .results-section {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
         }
 
         .results-header {
-            padding: 15px;
-            border-bottom: 1px solid #00ff00;
+            padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #f3f4f6;
         }
 
         .results-title {
-            color: #00ff00;
             font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
         }
 
         .results-count {
-            color: #888;
+            color: #6b7280;
             font-size: 14px;
         }
 
-        /* Tabella risultati */
+        /* Results table */
         .results-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 13px;
         }
 
         .results-table th,
         .results-table td {
-            padding: 10px;
+            padding: 12px 16px;
             text-align: left;
-            border-bottom: 1px solid #333;
         }
 
         .results-table th {
-            background-color: #111;
-            color: #00ff00;
-            font-weight: bold;
+            background-color: #f9fafb;
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .results-table td {
-            color: #ccc;
+            color: #374151;
+            border-bottom: 1px solid #f3f4f6;
         }
 
-        .results-table tr:hover {
-            background-color: #111;
+        .results-table tbody tr:nth-child(even) {
+            background-color: #f9fafb;
         }
 
-        /* Link styling */
+        .results-table tbody tr:hover {
+            background-color: #eff6ff;
+        }
+
         .results-table a {
-            color: #00ffff;
+            color: #2563eb;
             text-decoration: none;
         }
 
@@ -183,179 +306,154 @@
             text-decoration: underline;
         }
 
-        /* Status indicator */
-        .status {
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #666;
-            background-color: #111;
-            color: #888;
+        /* Help section */
+        .help-section {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .help-header {
+            padding: 16px 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background-color 0.15s;
+        }
+
+        .help-header:hover {
+            background-color: #f9fafb;
+        }
+
+        .help-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0;
+        }
+
+        .help-toggle {
+            color: #6b7280;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .help-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .help-content.open {
+            max-height: 500px;
+        }
+
+        .help-content-inner {
+            padding: 0 24px 24px 24px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .help-content ol {
+            list-style: none;
+            counter-reset: steps;
+            padding: 16px 0 0 0;
+        }
+
+        .help-content ol li {
+            counter-increment: steps;
+            margin-bottom: 10px;
+            color: #374151;
             font-size: 14px;
         }
 
-        .status.searching {
-            border-color: #ffff00;
-            color: #ffff00;
+        .help-content ol li::before {
+            content: counter(steps) ".";
+            color: #2563eb;
+            font-weight: 600;
+            margin-right: 8px;
         }
 
-        .status.success {
-            border-color: #00ff00;
-            color: #00ff00;
+        .help-tip {
+            margin-top: 16px;
+            padding: 12px 16px;
+            background-color: #eff6ff;
+            border-radius: 8px;
+            color: #1e40af;
+            font-size: 13px;
+            line-height: 1.5;
         }
 
-        .status.error {
-            border-color: #ff0000;
-            color: #ff0000;
-        }
-
-        /* Responsive design */
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .results-table {
-                font-size: 10px;
-            }
-
-            .results-table th,
-            .results-table td {
-                padding: 5px;
-            }
-
-            .btn {
-                padding: 8px 16px;
-                margin-bottom: 10px;
-            }
-        }
-
-        /* Loading animation */
+        /* Loading spinner */
         .loading {
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid #333;
+            border: 3px solid #e5e7eb;
             border-radius: 50%;
-            border-top-color: #00ff00;
-            animation: spin 1s ease-in-out infinite;
+            border-top-color: #2563eb;
+            animation: spin 0.8s ease-in-out infinite;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        /* Hidden class */
+        /* Hidden */
         .hidden {
             display: none;
         }
 
-        /* How It Works section */
-        .help-section {
-            border: 1px solid #00ff00;
-            padding: 0;
-            margin-bottom: 20px;
-            background-color: #000;
-        }
-
-        .help-header {
-            padding: 15px 20px;
-            cursor: pointer;
+        /* Button row */
+        .button-row {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 24px;
         }
 
-        .help-header:hover {
-            background-color: #111;
+        .button-row .btn {
+            margin-right: 0;
         }
 
-        .help-header h2 {
-            color: #00ff00;
-            font-size: 18px;
-            margin: 0;
-        }
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
 
-        .help-toggle {
-            color: #00ff00;
-            font-size: 14px;
-        }
+            .header {
+                padding: 16px 0;
+            }
 
-        .help-content {
-            padding: 0 20px 20px 20px;
-            border-top: 1px solid #333;
-            display: none;
-        }
+            .header h1 {
+                font-size: 22px;
+            }
 
-        .help-content.open {
-            display: block;
-        }
+            .card {
+                padding: 16px;
+            }
 
-        .help-content ol {
-            list-style: none;
-            counter-reset: steps;
-            padding: 15px 0 0 0;
-        }
+            .results-table {
+                font-size: 11px;
+            }
 
-        .help-content ol li {
-            counter-increment: steps;
-            margin-bottom: 10px;
-            color: #ccc;
-            font-size: 14px;
-        }
+            .results-table th,
+            .results-table td {
+                padding: 8px 10px;
+            }
 
-        .help-content ol li::before {
-            content: counter(steps) ". ";
-            color: #00ff00;
-            font-weight: bold;
-        }
+            .btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
 
-        .help-tip {
-            margin-top: 15px;
-            padding: 10px;
-            border: 1px solid #666;
-            background-color: #111;
-            color: #888;
-            font-size: 13px;
-        }
-
-        /* Input hints */
-        .input-hint {
-            color: #666;
-            font-size: 12px;
-            margin-top: 3px;
-            margin-bottom: 2px;
-        }
-
-        /* Quick example buttons */
-        .example-buttons {
-            margin-top: 6px;
-        }
-
-        .btn-example {
-            background-color: #000;
-            border: 1px solid #666;
-            color: #888;
-            padding: 4px 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            cursor: pointer;
-            margin-right: 8px;
-            margin-top: 4px;
-            transition: all 0.2s;
-        }
-
-        .btn-example:hover {
-            border-color: #00ff00;
-            color: #00ff00;
-        }
-
-        /* ASCII progress bar */
-        .progress-bar-container {
-            margin-top: 8px;
-            font-size: 14px;
-            color: #00ff00;
-            font-family: 'Courier New', monospace;
+            .button-row {
+                gap: 8px;
+            }
         }
     </style>
 </head>
@@ -363,39 +461,40 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>🗺️ Google Maps Scraper - Web Interface</h1>
-            <div class="subtitle">REAL Google Maps Search with Playwright | Interface connected to scraping system</div>
+            <h1>Google Maps Scraper</h1>
+            <div class="subtitle">Search and extract business data from Google Maps</div>
         </div>
 
         <!-- How It Works -->
         <div class="help-section">
             <div class="help-header" onclick="toggleHelp()">
-                <h2>? How It Works</h2>
-                <span class="help-toggle" id="helpToggle">[+] show</span>
+                <h2>How It Works</h2>
+                <span class="help-toggle" id="helpToggle">Show</span>
             </div>
             <div class="help-content" id="helpContent">
-                <ol>
-                    <li>Enter a search query describing the type of business you want to find</li>
-                    <li>Enter one or more target cities, separated by commas</li>
-                    <li>Click "Start Search" to launch the Google Maps scraper</li>
-                    <li>Download the results as a CSV file when the search is complete</li>
-                </ol>
-                <div class="help-tip">TIP: Start with 10-20 results per search to get fast results. You can always run more searches later.</div>
+                <div class="help-content-inner">
+                    <ol>
+                        <li>Enter a search query describing the type of business you want to find</li>
+                        <li>Enter one or more target cities, separated by commas</li>
+                        <li>Click "Start Search" to launch the Google Maps scraper</li>
+                        <li>Download the results as a CSV file when the search is complete</li>
+                    </ol>
+                    <div class="help-tip">Tip: Start with 10&#8211;20 results per search for fast results. You can always run more searches later.</div>
+                </div>
             </div>
         </div>
 
-        <!-- Commands section -->
-        <div class="command-section">
-            <h2>🔍 Search Commands</h2>
+        <!-- Search form -->
+        <div class="card">
+            <h2>Search</h2>
 
-            <!-- Main input for query -->
             <div class="input-group">
-                <label class="input-label" for="searchQuery">Search query:</label>
+                <label class="input-label" for="searchQuery">Search query</label>
                 <input
                     type="text"
                     id="searchQuery"
                     class="command-input"
-                    placeholder="e.g. 'chinese travel agency Milan', 'sushi restaurants Rome', 'pharmacies Turin'"
+                    placeholder="e.g. pizza restaurants, dentists, travel agencies..."
                 >
                 <div class="input-hint">What type of business are you looking for?</div>
                 <div class="example-buttons">
@@ -405,33 +504,30 @@
                 </div>
             </div>
 
-            <!-- City selection -->
             <div class="input-group">
-                <label class="input-label" for="cities">Target cities (comma-separated):</label>
+                <label class="input-label" for="cities">Target cities</label>
                 <input
                     type="text"
                     id="cities"
                     class="command-input"
-                    placeholder="e.g. 'Milan, Rome, Naples' or 'New York, Los Angeles, Chicago'"
+                    placeholder="e.g. Milan, Rome, Naples or New York, Los Angeles, Chicago"
                 >
                 <div class="input-hint">Separate multiple cities with commas. English names work best.</div>
             </div>
 
-            <!-- Additional filters -->
             <div class="input-group">
-                <label class="input-label" for="filters">Additional filters (optional):</label>
+                <label class="input-label" for="filters">Additional filters (optional)</label>
                 <input
                     type="text"
                     id="filters"
                     class="command-input"
-                    placeholder="e.g. 'downtown area', 'with website', 'open on Sunday'"
+                    placeholder="e.g. downtown area, with website, open on Sunday"
                 >
-                <div class="input-hint">Optional. Narrow by area, feature, or hours.</div>
+                <div class="input-hint">Narrow by area, feature, or hours.</div>
             </div>
 
-            <!-- Number of results -->
             <div class="input-group">
-                <label class="input-label" for="maxResults">Minimum number of results:</label>
+                <label class="input-label" for="maxResults">Minimum number of results</label>
                 <input
                     type="number"
                     id="maxResults"
@@ -440,19 +536,18 @@
                     min="1"
                     max="200"
                 >
-                <div class="input-hint">More results = longer search. Start with 10-20.</div>
+                <div class="input-hint">More results = longer search. Start with 10&#8211;20.</div>
             </div>
 
-            <!-- Control buttons -->
-            <div style="margin-top: 20px;">
+            <div class="button-row">
                 <button class="btn" id="searchBtn" onclick="startSearch()">
-                    🔍 Start Search
+                    Start Search
                 </button>
-                <button class="btn" id="downloadBtn" onclick="downloadCSV()" disabled>
-                    📥 Download CSV
+                <button class="btn btn-secondary" id="downloadBtn" onclick="downloadCSV()" disabled>
+                    Download CSV
                 </button>
-                <button class="btn" id="clearBtn" onclick="clearResults()">
-                    🗑️ Clear Results
+                <button class="btn btn-secondary" id="clearBtn" onclick="clearResults()">
+                    Clear Results
                 </button>
             </div>
         </div>
@@ -465,11 +560,10 @@
         <!-- Results section -->
         <div id="resultsSection" class="results-section hidden">
             <div class="results-header">
-                <div class="results-title">📊 Search Results</div>
+                <div class="results-title">Search Results</div>
                 <div class="results-count" id="resultsCount">0 results found</div>
             </div>
 
-            <!-- Results table -->
             <div style="overflow-x: auto;">
                 <table class="results-table" id="resultsTable">
                     <thead>
@@ -485,7 +579,6 @@
                         </tr>
                     </thead>
                     <tbody id="resultsBody">
-                        <!-- Results will be inserted here dynamically -->
                     </tbody>
                 </table>
             </div>
@@ -520,7 +613,7 @@
             const cityList = cities.split(',').map(c => c.trim()).filter(c => c.length > 0);
             const cityCount = cityList.length;
             const estMinutes = cityCount * 2 + '-' + cityCount * 3;
-            showStatus(`🔍 Starting Google Maps search across selected cities...\nEstimated time: ~${estMinutes} minutes for ${cityCount} ${cityCount === 1 ? 'city' : 'cities'}`, 'searching');
+            showStatus(`Starting Google Maps search across selected cities...\nEstimated time: ~${estMinutes} minutes for ${cityCount} ${cityCount === 1 ? 'city' : 'cities'}`, 'searching');
             document.getElementById('searchBtn').disabled = true;
 
             // Call the real API
@@ -539,20 +632,20 @@
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    showStatus(`❌ Error: ${data.error}`, 'error');
+                    showStatus(`Error: ${data.error}`, 'error');
                     document.getElementById('searchBtn').disabled = false;
                     return;
                 }
 
                 currentSearchId = data.search_id;
-                showStatus('🔍 Search in progress across multiple cities... This may take several minutes.', 'searching');
+                showStatus('Search in progress across multiple cities... This may take several minutes.', 'searching');
 
                 // Start polling to check status
                 startPolling();
             })
             .catch(error => {
                 console.error('Request error:', error);
-                showStatus('❌ Server connection error', 'error');
+                showStatus('Server connection error', 'error');
                 document.getElementById('searchBtn').disabled = false;
             });
         }
@@ -567,7 +660,7 @@
 
             pollInterval = setInterval(() => {
                 checkSearchStatus();
-            }, 3000); // Check every 3 seconds
+            }, 3000);
 
             // First immediate check
             checkSearchStatus();
@@ -583,43 +676,39 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'completed') {
-                    // Search completed, get results
                     getSearchResults();
                 } else if (data.status === 'error' || data.status === 'timeout') {
-                    // Error or timeout
                     clearInterval(pollInterval);
-                    showStatus(`❌ ${data.error || 'Error during search'}`, 'error');
+                    showStatus(`${data.error || 'Error during search'}`, 'error');
                     document.getElementById('searchBtn').disabled = false;
                 } else {
                     // Still in progress
-                    let statusMsg = `🔍 Search in progress... (${data.elapsed_time})`;
+                    let statusMsg = `Search in progress... (${data.elapsed_time})`;
                     if (data.current_city) {
                         statusMsg += ` | Processing: ${data.current_city}`;
                     }
+
+                    let pct = 0;
+                    let progressLabel = '';
                     if (data.progress) {
                         statusMsg += ` | Results: ${data.progress}`;
-                        // Build ASCII progress bar
                         const parts = data.progress.split('/');
                         if (parts.length === 2) {
                             const current = parseInt(parts[0]);
                             const total = parseInt(parts[1]);
                             if (total > 0) {
-                                const pct = Math.min(Math.round((current / total) * 100), 100);
-                                const barLen = 20;
-                                const filled = Math.round((pct / 100) * barLen);
-                                const empty = barLen - filled;
-                                const bar = '#'.repeat(filled) + '-'.repeat(empty);
-                                statusMsg += `\n[${bar}] ${pct}% | ${current}/${total} results`;
+                                pct = Math.min(Math.round((current / total) * 100), 100);
+                                progressLabel = `${pct}% \u2014 ${current}/${total} results`;
                             }
                         }
                     }
-                    showStatus(statusMsg, 'searching');
+                    showStatus(statusMsg, 'searching', pct, progressLabel);
                 }
             })
             .catch(error => {
                 console.error('Status check error:', error);
                 clearInterval(pollInterval);
-                showStatus('❌ Connection error', 'error');
+                showStatus('Connection error', 'error');
                 document.getElementById('searchBtn').disabled = false;
             });
         }
@@ -636,14 +725,14 @@
                 clearInterval(pollInterval);
 
                 if (data.error) {
-                    showStatus(`❌ Error: ${data.error}`, 'error');
+                    showStatus(`Error: ${data.error}`, 'error');
                     document.getElementById('searchBtn').disabled = false;
                     return;
                 }
 
                 currentResults = data.results || [];
                 displayResults(currentResults, data.query);
-                showStatus(`✅ Search completed: ${currentResults.length} results found from Google Maps`, 'success');
+                showStatus(`Search completed: ${currentResults.length} results found from Google Maps`, 'success');
 
                 document.getElementById('searchBtn').disabled = false;
                 document.getElementById('downloadBtn').disabled = false;
@@ -651,7 +740,7 @@
             .catch(error => {
                 console.error('Results retrieval error:', error);
                 clearInterval(pollInterval);
-                showStatus('❌ Error retrieving results', 'error');
+                showStatus('Error retrieving results', 'error');
                 document.getElementById('searchBtn').disabled = false;
             });
         }
@@ -663,7 +752,6 @@
             currentResults = [];
             currentSearchId = null;
 
-            // Stop polling if active
             if (pollInterval) {
                 clearInterval(pollInterval);
                 pollInterval = null;
@@ -685,10 +773,8 @@
             const resultsBody = document.getElementById('resultsBody');
             const resultsCount = document.getElementById('resultsCount');
 
-            // Clear previous results
             resultsBody.innerHTML = '';
 
-            // Add new results
             results.forEach(result => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -704,7 +790,6 @@
                 resultsBody.appendChild(row);
             });
 
-            // Update counter and show results section
             resultsCount.textContent = `${results.length} results found for "${query}"`;
             resultsSection.classList.remove('hidden');
         }
@@ -712,15 +797,20 @@
         /**
          * Show status message
          */
-        function showStatus(message, type = '') {
+        function showStatus(message, type = '', progressPct = 0, progressLabel = '') {
             const status = document.getElementById('status');
-            // Use textContent for safety, but replace newlines with <br> for display
             const escaped = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            status.innerHTML = escaped.replace(/\n/g, '<br>');
+            let html = escaped.replace(/\n/g, '<br>');
+
+            if (type === 'searching' && progressPct > 0) {
+                html += `<div class="progress-track"><div class="progress-fill" style="width:${progressPct}%"></div></div>`;
+                html += `<div class="progress-text">${progressLabel}</div>`;
+            }
+
+            status.innerHTML = html;
             status.className = `status ${type}`;
             status.classList.remove('hidden');
 
-            // Automatically hide after 5 seconds if not loading
             if (type !== 'searching') {
                 setTimeout(() => {
                     status.classList.add('hidden');
@@ -737,7 +827,6 @@
                 return;
             }
 
-            // Create CSV content
             const headers = ['Name', 'City', 'Address', 'Phone', 'Website', 'Type', 'Reviews', 'Hours'];
             const csvContent = [
                 headers.join(','),
@@ -753,7 +842,6 @@
                 ].join(','))
             ].join('\n');
 
-            // Create and download file
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
@@ -764,7 +852,7 @@
             link.click();
             document.body.removeChild(link);
 
-            showStatus('📥 CSV file downloaded successfully!', 'success');
+            showStatus('CSV file downloaded successfully!', 'success');
         }
 
         /**
@@ -774,7 +862,7 @@
             const content = document.getElementById('helpContent');
             const toggle = document.getElementById('helpToggle');
             const isOpen = content.classList.toggle('open');
-            toggle.textContent = isOpen ? '[-] hide' : '[+] show';
+            toggle.textContent = isOpen ? 'Hide' : 'Show';
         }
 
         /**
@@ -793,9 +881,8 @@
             }
         }
 
-        // Event listeners to improve usability
+        // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
-            // Allow starting search by pressing Enter
             document.getElementById('searchQuery').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     startSearch();
