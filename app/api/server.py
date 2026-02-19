@@ -59,8 +59,8 @@ def start_search():
         if not city_list:
             return jsonify({'error': 'Invalid city format. Use comma-separated city names.'}), 400
 
-        min_per_city = max(max_results // len(city_list), 1)
-        total_target = max_results
+        min_per_city = max_results          # target per city
+        total_target = max_results * len(city_list)   # total across all cities
 
         search_id = f"search_{int(time.time() * 1000)}"
 
@@ -86,7 +86,7 @@ def start_search():
         return jsonify({
             'search_id': search_id,
             'status': 'started',
-            'message': f'Search started for: {query} across {len(city_list)} cities (targeting {total_target} total results, ~{min_per_city} per city)'
+            'message': f'Search started for: {query} across {len(city_list)} cities ({min_per_city} results per city, {total_target} total)'
         })
 
     except Exception as e:
@@ -183,14 +183,8 @@ def _run_scraper_multi_city(search_id, query, filters, cities, min_per_city, max
                 if filters:
                     city_query += f" {filters}"
 
-                # Calculate how many more results we need
-                results_so_far = len(all_results)
-                remaining_cities = len(cities) - city_idx
-
-                if results_so_far < (total_target * (city_idx / len(cities))):
-                    city_target = max(min_per_city, (total_target - results_so_far) // remaining_cities + 10)
-                else:
-                    city_target = min_per_city
+                # Each city gets exactly min_per_city results
+                city_target = min_per_city
 
                 print(f"Target for this city: {city_target} results")
 

@@ -35,6 +35,13 @@
             margin-bottom: 24px;
         }
 
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
         .header h1 {
             font-size: 28px;
             font-weight: 700;
@@ -46,6 +53,40 @@
             color: #6b7280;
             font-size: 15px;
             font-weight: 400;
+        }
+
+        /* Language switcher */
+        .lang-switcher {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .lang-btn {
+            background: #ffffff;
+            border: 1.5px solid #d1d5db;
+            color: #6b7280;
+            padding: 4px 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.15s;
+            letter-spacing: 0.04em;
+        }
+
+        .lang-btn:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        .lang-btn.active {
+            background-color: #2563eb;
+            border-color: #2563eb;
+            color: #ffffff;
         }
 
         /* Card */
@@ -461,73 +502,85 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>Google Maps Scraper</h1>
-            <div class="subtitle">Search and extract business data from Google Maps</div>
+            <div class="header-top">
+                <div>
+                    <h1>Google Maps Scraper</h1>
+                    <div class="subtitle" data-i18n="subtitle">Search and extract business data from Google Maps</div>
+                </div>
+                <div class="lang-switcher">
+                    <button class="lang-btn active" id="lang-en" onclick="setLanguage('en')">EN</button>
+                    <button class="lang-btn" id="lang-it" onclick="setLanguage('it')">IT</button>
+                    <button class="lang-btn" id="lang-fr" onclick="setLanguage('fr')">FR</button>
+                </div>
+            </div>
         </div>
 
         <!-- How It Works -->
         <div class="help-section">
             <div class="help-header" onclick="toggleHelp()">
-                <h2>How It Works</h2>
-                <span class="help-toggle" id="helpToggle">Show</span>
+                <h2 data-i18n="howItWorks">How It Works</h2>
+                <span class="help-toggle" id="helpToggle" data-i18n="show">Show</span>
             </div>
             <div class="help-content" id="helpContent">
                 <div class="help-content-inner">
                     <ol>
-                        <li>Enter a search query describing the type of business you want to find</li>
-                        <li>Enter one or more target cities, separated by commas</li>
-                        <li>Click "Start Search" to launch the Google Maps scraper</li>
-                        <li>Download the results as a CSV file when the search is complete</li>
+                        <li data-i18n="step1">Enter a search query describing the type of business you want to find</li>
+                        <li data-i18n="step2">Enter one or more target cities, separated by commas</li>
+                        <li data-i18n="step3">Click "Start Search" to launch the Google Maps scraper</li>
+                        <li data-i18n="step4">Download the results as a CSV file when the search is complete</li>
                     </ol>
-                    <div class="help-tip">Tip: Start with 10&#8211;20 results per search for fast results. You can always run more searches later.</div>
+                    <div class="help-tip" data-i18n="tip">Tip: Start with 10&#8211;20 results per city for fast results. You can always run more searches later.</div>
                 </div>
             </div>
         </div>
 
         <!-- Search form -->
         <div class="card">
-            <h2>Search</h2>
+            <h2 data-i18n="search">Search</h2>
 
             <div class="input-group">
-                <label class="input-label" for="searchQuery">Search query</label>
+                <label class="input-label" for="searchQuery" data-i18n="searchQueryLabel">Search query</label>
                 <input
                     type="text"
                     id="searchQuery"
                     class="command-input"
+                    data-i18n-placeholder="searchQueryPlaceholder"
                     placeholder="e.g. pizza restaurants, dentists, travel agencies..."
                 >
-                <div class="input-hint">What type of business are you looking for?</div>
+                <div class="input-hint" data-i18n="searchQueryHint">What type of business are you looking for?</div>
                 <div class="example-buttons">
-                    <button type="button" class="btn-example" onclick="fillExample('pizza')">Pizza in US</button>
-                    <button type="button" class="btn-example" onclick="fillExample('dentists')">Dentists in UK</button>
-                    <button type="button" class="btn-example" onclick="fillExample('agenzie')">Agenzie viaggi IT</button>
+                    <button type="button" class="btn-example" onclick="fillExample('pizza')" data-i18n="exPizza">Pizza in US</button>
+                    <button type="button" class="btn-example" onclick="fillExample('dentists')" data-i18n="exDentists">Dentists in UK</button>
+                    <button type="button" class="btn-example" onclick="fillExample('agenzie')" data-i18n="exAgenzie">Travel agencies IT</button>
                 </div>
             </div>
 
             <div class="input-group">
-                <label class="input-label" for="cities">Target cities</label>
+                <label class="input-label" for="cities" data-i18n="citiesLabel">Target cities</label>
                 <input
                     type="text"
                     id="cities"
                     class="command-input"
+                    data-i18n-placeholder="citiesPlaceholder"
                     placeholder="e.g. Milan, Rome, Naples or New York, Los Angeles, Chicago"
                 >
-                <div class="input-hint">Separate multiple cities with commas. English names work best.</div>
+                <div class="input-hint" data-i18n="citiesHint">Separate multiple cities with commas. English names work best.</div>
             </div>
 
             <div class="input-group">
-                <label class="input-label" for="filters">Additional filters (optional)</label>
+                <label class="input-label" for="filters" data-i18n="filtersLabel">Additional filters (optional)</label>
                 <input
                     type="text"
                     id="filters"
                     class="command-input"
+                    data-i18n-placeholder="filtersPlaceholder"
                     placeholder="e.g. downtown area, with website, open on Sunday"
                 >
-                <div class="input-hint">Narrow by area, feature, or hours.</div>
+                <div class="input-hint" data-i18n="filtersHint">Narrow by area, feature, or hours.</div>
             </div>
 
             <div class="input-group">
-                <label class="input-label" for="maxResults">Minimum number of results</label>
+                <label class="input-label" for="maxResults" data-i18n="minResultsLabel">Minimum results per city</label>
                 <input
                     type="number"
                     id="maxResults"
@@ -536,17 +589,17 @@
                     min="1"
                     max="200"
                 >
-                <div class="input-hint">More results = longer search. Start with 10&#8211;20.</div>
+                <div class="input-hint" data-i18n="minResultsHint">Results per city. More = longer search. Start with 10&#8211;20.</div>
             </div>
 
             <div class="button-row">
-                <button class="btn" id="searchBtn" onclick="startSearch()">
+                <button class="btn" id="searchBtn" onclick="startSearch()" data-i18n="startSearch">
                     Start Search
                 </button>
-                <button class="btn btn-secondary" id="downloadBtn" onclick="downloadCSV()" disabled>
+                <button class="btn btn-secondary" id="downloadBtn" onclick="downloadCSV()" disabled data-i18n="downloadCSV">
                     Download CSV
                 </button>
-                <button class="btn btn-secondary" id="clearBtn" onclick="clearResults()">
+                <button class="btn btn-secondary" id="clearBtn" onclick="clearResults()" data-i18n="clearResults">
                     Clear Results
                 </button>
             </div>
@@ -560,22 +613,22 @@
         <!-- Results section -->
         <div id="resultsSection" class="results-section hidden">
             <div class="results-header">
-                <div class="results-title">Search Results</div>
-                <div class="results-count" id="resultsCount">0 results found</div>
+                <div class="results-title" data-i18n="searchResults">Search Results</div>
+                <div class="results-count" id="resultsCount" data-i18n="noResults">0 results found</div>
             </div>
 
             <div style="overflow-x: auto;">
                 <table class="results-table" id="resultsTable">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>City</th>
-                            <th>Address</th>
-                            <th>Phone</th>
-                            <th>Website</th>
-                            <th>Type</th>
-                            <th>Reviews</th>
-                            <th>Hours</th>
+                            <th data-i18n="colName">Name</th>
+                            <th data-i18n="colCity">City</th>
+                            <th data-i18n="colAddress">Address</th>
+                            <th data-i18n="colPhone">Phone</th>
+                            <th data-i18n="colWebsite">Website</th>
+                            <th data-i18n="colType">Type</th>
+                            <th data-i18n="colReviews">Reviews</th>
+                            <th data-i18n="colHours">Hours</th>
                         </tr>
                     </thead>
                     <tbody id="resultsBody">
@@ -589,6 +642,225 @@
         let currentResults = [];
         let currentSearchId = null;
         let pollInterval = null;
+        let currentLang = 'en';
+
+        // ---- Translations ----
+        const translations = {
+            en: {
+                subtitle: 'Search and extract business data from Google Maps',
+                howItWorks: 'How It Works',
+                show: 'Show',
+                hide: 'Hide',
+                step1: 'Enter a search query describing the type of business you want to find',
+                step2: 'Enter one or more target cities, separated by commas',
+                step3: 'Click "Start Search" to launch the Google Maps scraper',
+                step4: 'Download the results as a CSV file when the search is complete',
+                tip: 'Tip: Start with 10\u201320 results per city for fast results. You can always run more searches later.',
+                search: 'Search',
+                searchQueryLabel: 'Search query',
+                searchQueryPlaceholder: 'e.g. pizza restaurants, dentists, travel agencies...',
+                searchQueryHint: 'What type of business are you looking for?',
+                exPizza: 'Pizza in US',
+                exDentists: 'Dentists in UK',
+                exAgenzie: 'Travel agencies IT',
+                citiesLabel: 'Target cities',
+                citiesPlaceholder: 'e.g. Milan, Rome, Naples or New York, Los Angeles, Chicago',
+                citiesHint: 'Separate multiple cities with commas. English names work best.',
+                filtersLabel: 'Additional filters (optional)',
+                filtersPlaceholder: 'e.g. downtown area, with website, open on Sunday',
+                filtersHint: 'Narrow by area, feature, or hours.',
+                minResultsLabel: 'Minimum results per city',
+                minResultsHint: 'Results per city. More = longer search. Start with 10\u201320.',
+                startSearch: 'Start Search',
+                downloadCSV: 'Download CSV',
+                clearResults: 'Clear Results',
+                searchResults: 'Search Results',
+                noResults: '0 results found',
+                resultsFoundFor: '{n} results found for "{q}"',
+                colName: 'Name',
+                colCity: 'City',
+                colAddress: 'Address',
+                colPhone: 'Phone',
+                colWebsite: 'Website',
+                colType: 'Type',
+                colReviews: 'Reviews',
+                colHours: 'Hours',
+                errNoQuery: 'Enter a valid search query',
+                errNoCity: 'Enter at least one target city',
+                statusStarting: 'Starting Google Maps search...\nEstimated time: ~{mins} minutes for {count} {cityWord}',
+                cityWord1: 'city',
+                cityWordN: 'cities',
+                statusInProgress: 'Search in progress across multiple cities... This may take several minutes.',
+                statusProcessing: 'Search in progress... ({elapsed}) | Processing: {city} | Results: {progress}',
+                statusProcessingNoCity: 'Search in progress... ({elapsed})',
+                statusCompleted: 'Search completed: {n} results found from Google Maps',
+                statusNoDownload: 'No results to download',
+                statusCSVDownloaded: 'CSV file downloaded successfully!',
+                statusConnError: 'Server connection error',
+                statusCheckError: 'Connection error',
+                statusResultsError: 'Error retrieving results',
+            },
+            it: {
+                subtitle: 'Cerca ed estrai dati di attività da Google Maps',
+                howItWorks: 'Come Funziona',
+                show: 'Mostra',
+                hide: 'Nascondi',
+                step1: 'Inserisci una query di ricerca che descrive il tipo di attività',
+                step2: 'Inserisci una o più città target, separate da virgole',
+                step3: 'Clicca "Avvia Ricerca" per avviare lo scraper di Google Maps',
+                step4: 'Scarica i risultati come file CSV a ricerca completata',
+                tip: 'Suggerimento: inizia con 10\u201320 risultati per città per ricerche veloci.',
+                search: 'Ricerca',
+                searchQueryLabel: 'Query di ricerca',
+                searchQueryPlaceholder: 'es. ristoranti pizza, dentisti, agenzie di viaggio...',
+                searchQueryHint: 'Che tipo di attività stai cercando?',
+                exPizza: 'Pizza negli USA',
+                exDentists: 'Dentisti nel UK',
+                exAgenzie: 'Agenzie viaggi IT',
+                citiesLabel: 'Città target',
+                citiesPlaceholder: 'es. Milano, Roma, Napoli',
+                citiesHint: 'Separa più città con virgole. I nomi in inglese funzionano meglio.',
+                filtersLabel: 'Filtri aggiuntivi (opzionale)',
+                filtersPlaceholder: 'es. centro città, con sito web, aperto la domenica',
+                filtersHint: 'Restringi per area, caratteristica o orari.',
+                minResultsLabel: 'Risultati minimi per città',
+                minResultsHint: 'Risultati per città. Di più = ricerca più lunga. Inizia con 10\u201320.',
+                startSearch: 'Avvia Ricerca',
+                downloadCSV: 'Scarica CSV',
+                clearResults: 'Cancella Risultati',
+                searchResults: 'Risultati della Ricerca',
+                noResults: '0 risultati trovati',
+                resultsFoundFor: '{n} risultati trovati per "{q}"',
+                colName: 'Nome',
+                colCity: 'Città',
+                colAddress: 'Indirizzo',
+                colPhone: 'Telefono',
+                colWebsite: 'Sito Web',
+                colType: 'Tipo',
+                colReviews: 'Recensioni',
+                colHours: 'Orari',
+                errNoQuery: 'Inserisci una query di ricerca valida',
+                errNoCity: 'Inserisci almeno una città target',
+                statusStarting: 'Avvio ricerca Google Maps...\nTempo stimato: ~{mins} minuti per {count} {cityWord}',
+                cityWord1: 'città',
+                cityWordN: 'città',
+                statusInProgress: 'Ricerca in corso su più città... Potrebbe richiedere alcuni minuti.',
+                statusProcessing: 'Ricerca in corso... ({elapsed}) | In elaborazione: {city} | Risultati: {progress}',
+                statusProcessingNoCity: 'Ricerca in corso... ({elapsed})',
+                statusCompleted: 'Ricerca completata: {n} risultati trovati da Google Maps',
+                statusNoDownload: 'Nessun risultato da scaricare',
+                statusCSVDownloaded: 'File CSV scaricato con successo!',
+                statusConnError: 'Errore di connessione al server',
+                statusCheckError: 'Errore di connessione',
+                statusResultsError: 'Errore nel recupero dei risultati',
+            },
+            fr: {
+                subtitle: 'Recherchez et extrayez des données d\'entreprises depuis Google Maps',
+                howItWorks: 'Comment ça marche',
+                show: 'Afficher',
+                hide: 'Masquer',
+                step1: 'Entrez une requête décrivant le type d\'entreprise que vous cherchez',
+                step2: 'Entrez une ou plusieurs villes cibles, séparées par des virgules',
+                step3: 'Cliquez sur "Lancer la recherche" pour démarrer le scraper',
+                step4: 'Téléchargez les résultats en CSV quand la recherche est terminée',
+                tip: 'Conseil : commencez avec 10\u201320 résultats par ville pour des recherches rapides.',
+                search: 'Recherche',
+                searchQueryLabel: 'Requête de recherche',
+                searchQueryPlaceholder: 'ex. pizzerias, dentistes, agences de voyage...',
+                searchQueryHint: 'Quel type d\'entreprise recherchez-vous ?',
+                exPizza: 'Pizza aux États-Unis',
+                exDentists: 'Dentistes au Royaume-Uni',
+                exAgenzie: 'Agences de voyage IT',
+                citiesLabel: 'Villes cibles',
+                citiesPlaceholder: 'ex. Milan, Rome, Naples ou New York, Los Angeles, Chicago',
+                citiesHint: 'Séparez plusieurs villes par des virgules. Les noms en anglais fonctionnent mieux.',
+                filtersLabel: 'Filtres supplémentaires (optionnel)',
+                filtersPlaceholder: 'ex. centre-ville, avec site web, ouvert le dimanche',
+                filtersHint: 'Affinez par zone, caractéristique ou horaires.',
+                minResultsLabel: 'Résultats minimum par ville',
+                minResultsHint: 'Résultats par ville. Plus = recherche plus longue. Commencez avec 10\u201320.',
+                startSearch: 'Lancer la recherche',
+                downloadCSV: 'Télécharger CSV',
+                clearResults: 'Effacer les résultats',
+                searchResults: 'Résultats de recherche',
+                noResults: '0 résultats trouvés',
+                resultsFoundFor: '{n} résultats trouvés pour "{q}"',
+                colName: 'Nom',
+                colCity: 'Ville',
+                colAddress: 'Adresse',
+                colPhone: 'Téléphone',
+                colWebsite: 'Site Web',
+                colType: 'Type',
+                colReviews: 'Avis',
+                colHours: 'Horaires',
+                errNoQuery: 'Entrez une requête de recherche valide',
+                errNoCity: 'Entrez au moins une ville cible',
+                statusStarting: 'Démarrage de la recherche Google Maps...\nTemps estimé : ~{mins} minutes pour {count} {cityWord}',
+                cityWord1: 'ville',
+                cityWordN: 'villes',
+                statusInProgress: 'Recherche en cours sur plusieurs villes... Cela peut prendre plusieurs minutes.',
+                statusProcessing: 'Recherche en cours... ({elapsed}) | Traitement : {city} | Résultats : {progress}',
+                statusProcessingNoCity: 'Recherche en cours... ({elapsed})',
+                statusCompleted: 'Recherche terminée : {n} résultats trouvés depuis Google Maps',
+                statusNoDownload: 'Aucun résultat à télécharger',
+                statusCSVDownloaded: 'Fichier CSV téléchargé avec succès !',
+                statusConnError: 'Erreur de connexion au serveur',
+                statusCheckError: 'Erreur de connexion',
+                statusResultsError: 'Erreur lors de la récupération des résultats',
+            }
+        };
+
+        // ---- i18n helpers ----
+        function t(key, vars) {
+            const lang = translations[currentLang] || translations['en'];
+            let str = lang[key] !== undefined ? lang[key] : (translations['en'][key] || key);
+            if (vars) {
+                for (const k in vars) {
+                    str = str.replace(new RegExp('\\{' + k + '\\}', 'g'), vars[k]);
+                }
+            }
+            return str;
+        }
+
+        function applyTranslations() {
+            document.querySelectorAll('[data-i18n]').forEach(function(el) {
+                var key = el.getAttribute('data-i18n');
+                // Don't overwrite the help toggle if it tracks open state
+                if (el.id === 'helpToggle') return;
+                el.textContent = t(key);
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+                el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+            });
+        }
+
+        function setLanguage(lang) {
+            if (!translations[lang]) return;
+            currentLang = lang;
+
+            // Update active button highlight
+            document.querySelectorAll('.lang-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            document.getElementById('lang-' + lang).classList.add('active');
+
+            // Apply all static translations
+            applyTranslations();
+
+            // Update help toggle text to match current open/closed state
+            var helpContent = document.getElementById('helpContent');
+            document.getElementById('helpToggle').textContent = helpContent.classList.contains('open') ? t('hide') : t('show');
+
+            // Update results count if results are showing
+            if (currentResults.length > 0) {
+                var query = document.getElementById('searchQuery').value;
+                document.getElementById('resultsCount').textContent = t('resultsFoundFor', {n: currentResults.length, q: query});
+            } else {
+                document.getElementById('resultsCount').textContent = t('noResults');
+            }
+
+            try { localStorage.setItem('preferredLang', lang); } catch(e) {}
+        }
 
         /**
          * Start real search via API
@@ -600,28 +872,25 @@
             const cities = document.getElementById('cities').value.trim();
 
             if (!query) {
-                showStatus('Enter a valid search query', 'error');
+                showStatus(t('errNoQuery'), 'error');
                 return;
             }
 
             if (!cities) {
-                showStatus('Enter at least one target city', 'error');
+                showStatus(t('errNoCity'), 'error');
                 return;
             }
 
-            // Calculate and show time estimate
             const cityList = cities.split(',').map(c => c.trim()).filter(c => c.length > 0);
             const cityCount = cityList.length;
             const estMinutes = cityCount * 2 + '-' + cityCount * 3;
-            showStatus(`Starting Google Maps search across selected cities...\nEstimated time: ~${estMinutes} minutes for ${cityCount} ${cityCount === 1 ? 'city' : 'cities'}`, 'searching');
+            const cityWord = cityCount === 1 ? t('cityWord1') : t('cityWordN');
+            showStatus(t('statusStarting', {mins: estMinutes, count: cityCount, cityWord: cityWord}), 'searching');
             document.getElementById('searchBtn').disabled = true;
 
-            // Call the real API
             fetch('/api/search', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     query: query,
                     maxResults: maxResults,
@@ -632,20 +901,17 @@
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    showStatus(`Error: ${data.error}`, 'error');
+                    showStatus('Error: ' + data.error, 'error');
                     document.getElementById('searchBtn').disabled = false;
                     return;
                 }
-
                 currentSearchId = data.search_id;
-                showStatus('Search in progress across multiple cities... This may take several minutes.', 'searching');
-
-                // Start polling to check status
+                showStatus(t('statusInProgress'), 'searching');
                 startPolling();
             })
             .catch(error => {
                 console.error('Request error:', error);
-                showStatus('Server connection error', 'error');
+                showStatus(t('statusConnError'), 'error');
                 document.getElementById('searchBtn').disabled = false;
             });
         }
@@ -654,15 +920,8 @@
          * Start polling to check search status
          */
         function startPolling() {
-            if (pollInterval) {
-                clearInterval(pollInterval);
-            }
-
-            pollInterval = setInterval(() => {
-                checkSearchStatus();
-            }, 3000);
-
-            // First immediate check
+            if (pollInterval) clearInterval(pollInterval);
+            pollInterval = setInterval(checkSearchStatus, 3000);
             checkSearchStatus();
         }
 
@@ -672,43 +931,45 @@
         function checkSearchStatus() {
             if (!currentSearchId) return;
 
-            fetch(`/api/search/${currentSearchId}/status`)
+            fetch('/api/search/' + currentSearchId + '/status')
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'completed') {
                     getSearchResults();
                 } else if (data.status === 'error' || data.status === 'timeout') {
                     clearInterval(pollInterval);
-                    showStatus(`${data.error || 'Error during search'}`, 'error');
+                    showStatus(data.error || 'Error during search', 'error');
                     document.getElementById('searchBtn').disabled = false;
                 } else {
-                    // Still in progress
-                    let statusMsg = `Search in progress... (${data.elapsed_time})`;
-                    if (data.current_city) {
-                        statusMsg += ` | Processing: ${data.current_city}`;
-                    }
-
+                    let statusMsg = t('statusProcessingNoCity', {elapsed: data.elapsed_time});
                     let pct = 0;
                     let progressLabel = '';
+
                     if (data.progress) {
-                        statusMsg += ` | Results: ${data.progress}`;
                         const parts = data.progress.split('/');
                         if (parts.length === 2) {
                             const current = parseInt(parts[0]);
                             const total = parseInt(parts[1]);
                             if (total > 0) {
                                 pct = Math.min(Math.round((current / total) * 100), 100);
-                                progressLabel = `${pct}% \u2014 ${current}/${total} results`;
+                                progressLabel = pct + '% \u2014 ' + current + '/' + total + ' results';
                             }
                         }
                     }
+
+                    if (data.current_city && data.progress) {
+                        statusMsg = t('statusProcessing', {elapsed: data.elapsed_time, city: data.current_city, progress: data.progress});
+                    } else if (data.current_city) {
+                        statusMsg = t('statusProcessing', {elapsed: data.elapsed_time, city: data.current_city, progress: ''});
+                    }
+
                     showStatus(statusMsg, 'searching', pct, progressLabel);
                 }
             })
             .catch(error => {
                 console.error('Status check error:', error);
                 clearInterval(pollInterval);
-                showStatus('Connection error', 'error');
+                showStatus(t('statusCheckError'), 'error');
                 document.getElementById('searchBtn').disabled = false;
             });
         }
@@ -719,20 +980,20 @@
         function getSearchResults() {
             if (!currentSearchId) return;
 
-            fetch(`/api/search/${currentSearchId}/results`)
+            fetch('/api/search/' + currentSearchId + '/results')
             .then(response => response.json())
             .then(data => {
                 clearInterval(pollInterval);
 
                 if (data.error) {
-                    showStatus(`Error: ${data.error}`, 'error');
+                    showStatus('Error: ' + data.error, 'error');
                     document.getElementById('searchBtn').disabled = false;
                     return;
                 }
 
                 currentResults = data.results || [];
                 displayResults(currentResults, data.query);
-                showStatus(`Search completed: ${currentResults.length} results found from Google Maps`, 'success');
+                showStatus(t('statusCompleted', {n: currentResults.length}), 'success');
 
                 document.getElementById('searchBtn').disabled = false;
                 document.getElementById('downloadBtn').disabled = false;
@@ -740,7 +1001,7 @@
             .catch(error => {
                 console.error('Results retrieval error:', error);
                 clearInterval(pollInterval);
-                showStatus('Error retrieving results', 'error');
+                showStatus(t('statusResultsError'), 'error');
                 document.getElementById('searchBtn').disabled = false;
             });
         }
@@ -759,6 +1020,7 @@
 
             document.getElementById('resultsSection').classList.add('hidden');
             document.getElementById('status').classList.add('hidden');
+            document.getElementById('resultsCount').textContent = t('noResults');
             document.getElementById('downloadBtn').disabled = true;
             document.getElementById('searchQuery').value = '';
             document.getElementById('filters').value = '';
@@ -777,44 +1039,41 @@
 
             results.forEach(result => {
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><strong>${result.name}</strong></td>
-                    <td><strong>${result.city || 'Unknown'}</strong></td>
-                    <td>${result.address}</td>
-                    <td>${result.phone}</td>
-                    <td>${result.website !== '-' ? `<a href="http://${result.website}" target="_blank">${result.website}</a>` : '-'}</td>
-                    <td>${result.type}</td>
-                    <td>${result.reviews}</td>
-                    <td>${result.hours}</td>
-                `;
+                row.innerHTML =
+                    '<td><strong>' + result.name + '</strong></td>' +
+                    '<td><strong>' + (result.city || 'Unknown') + '</strong></td>' +
+                    '<td>' + result.address + '</td>' +
+                    '<td>' + result.phone + '</td>' +
+                    '<td>' + (result.website !== '-' ? '<a href="http://' + result.website + '" target="_blank">' + result.website + '</a>' : '-') + '</td>' +
+                    '<td>' + result.type + '</td>' +
+                    '<td>' + result.reviews + '</td>' +
+                    '<td>' + result.hours + '</td>';
                 resultsBody.appendChild(row);
             });
 
-            resultsCount.textContent = `${results.length} results found for "${query}"`;
+            resultsCount.textContent = t('resultsFoundFor', {n: results.length, q: query});
             resultsSection.classList.remove('hidden');
         }
 
         /**
          * Show status message
          */
-        function showStatus(message, type = '', progressPct = 0, progressLabel = '') {
+        function showStatus(message, type, progressPct, progressLabel) {
             const status = document.getElementById('status');
             const escaped = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             let html = escaped.replace(/\n/g, '<br>');
 
             if (type === 'searching' && progressPct > 0) {
-                html += `<div class="progress-track"><div class="progress-fill" style="width:${progressPct}%"></div></div>`;
-                html += `<div class="progress-text">${progressLabel}</div>`;
+                html += '<div class="progress-track"><div class="progress-fill" style="width:' + progressPct + '%"></div></div>';
+                html += '<div class="progress-text">' + progressLabel + '</div>';
             }
 
             status.innerHTML = html;
-            status.className = `status ${type}`;
+            status.className = 'status ' + (type || '');
             status.classList.remove('hidden');
 
             if (type !== 'searching') {
-                setTimeout(() => {
-                    status.classList.add('hidden');
-                }, 5000);
+                setTimeout(function() { status.classList.add('hidden'); }, 5000);
             }
         }
 
@@ -823,22 +1082,22 @@
          */
         function downloadCSV() {
             if (currentResults.length === 0) {
-                showStatus('No results to download', 'error');
+                showStatus(t('statusNoDownload'), 'error');
                 return;
             }
 
-            const headers = ['Name', 'City', 'Address', 'Phone', 'Website', 'Type', 'Reviews', 'Hours'];
+            const headers = [t('colName'), t('colCity'), t('colAddress'), t('colPhone'), t('colWebsite'), t('colType'), t('colReviews'), t('colHours')];
             const csvContent = [
                 headers.join(','),
                 ...currentResults.map(result => [
-                    `"${result.name}"`,
-                    `"${result.city || 'Unknown'}"`,
-                    `"${result.address}"`,
-                    `"${result.phone}"`,
-                    `"${result.website}"`,
-                    `"${result.type}"`,
-                    `"${result.reviews}"`,
-                    `"${result.hours}"`
+                    '"' + result.name + '"',
+                    '"' + (result.city || 'Unknown') + '"',
+                    '"' + result.address + '"',
+                    '"' + result.phone + '"',
+                    '"' + result.website + '"',
+                    '"' + result.type + '"',
+                    '"' + result.reviews + '"',
+                    '"' + result.hours + '"'
                 ].join(','))
             ].join('\n');
 
@@ -846,13 +1105,13 @@
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
-            link.setAttribute('download', `google_maps_results_${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute('download', 'google_maps_results_' + new Date().toISOString().split('T')[0] + '.csv');
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            showStatus('CSV file downloaded successfully!', 'success');
+            showStatus(t('statusCSVDownloaded'), 'success');
         }
 
         /**
@@ -862,7 +1121,7 @@
             const content = document.getElementById('helpContent');
             const toggle = document.getElementById('helpToggle');
             const isOpen = content.classList.toggle('open');
-            toggle.textContent = isOpen ? 'Hide' : 'Show';
+            toggle.textContent = isOpen ? t('hide') : t('show');
         }
 
         /**
@@ -881,30 +1140,25 @@
             }
         }
 
-        // Event listeners
+        // Event listeners + init language
         document.addEventListener('DOMContentLoaded', function() {
+            // Load saved language or default to 'en'
+            var savedLang = 'en';
+            try { savedLang = localStorage.getItem('preferredLang') || 'en'; } catch(e) {}
+            if (!translations[savedLang]) savedLang = 'en';
+            setLanguage(savedLang);
+
             document.getElementById('searchQuery').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    startSearch();
-                }
+                if (e.key === 'Enter') startSearch();
             });
-
             document.getElementById('filters').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    startSearch();
-                }
+                if (e.key === 'Enter') startSearch();
             });
-
             document.getElementById('cities').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    startSearch();
-                }
+                if (e.key === 'Enter') startSearch();
             });
-
             document.getElementById('maxResults').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    startSearch();
-                }
+                if (e.key === 'Enter') startSearch();
             });
         });
     </script>
