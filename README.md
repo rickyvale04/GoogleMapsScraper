@@ -39,21 +39,17 @@ playwright install chromium
 
 ### 3. Avvia il server
 
-**macOS**: fai doppio click su `start.command`.
-Se appare l'avviso "Apple non può verificare", fai **click destro > Apri** la prima volta, oppure esegui da Terminale:
-```bash
-xattr -d com.apple.quarantine start.command
-```
+**macOS**: doppio click su `GoogleMapsScraper.app` — si apre il browser automaticamente, nessun terminale visibile.
+> Al primo avvio macOS potrebbe bloccare l'app. Fai **click destro > Apri** per autorizzarla.
 
-**Windows**: fai doppio click su `startWindows.bat`.
+**Windows**: doppio click su `startHidden.vbs` — si apre il browser automaticamente, nessuna finestra cmd.
 
-**Oppure manualmente:**
-```bash
-python3 api_server.py
-```
+**Con terminale (per debug):**
+- macOS/Linux: `start.command` oppure `python3 api_server.py`
+- Windows: `startWindows.bat`
 
 ### 4. Apri l'interfaccia
-Vai su: `http://localhost:5000`
+Il browser si apre automaticamente. Altrimenti vai su: `http://localhost:5001`
 
 ## 🎯 Utilizzo
 

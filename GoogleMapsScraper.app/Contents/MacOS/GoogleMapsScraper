@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# ---- Trova la directory del repository ----
+# L'app è in: repo/GoogleMapsScraper.app/Contents/MacOS/GoogleMapsScraper
+REPO_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+cd "$REPO_DIR"
+
+LOG_FILE="$REPO_DIR/.server.log"
+echo "$(date) - Starting Google Maps Scraper..." > "$LOG_FILE"
+
+# ---- Rimuovi blocco Gatekeeper ----
+xattr -d com.apple.quarantine "$0" 2>/dev/null
+xattr -d com.apple.quarantine "$REPO_DIR/GoogleMapsScraper.app" 2>/dev/null
+
+# ---- Trova Python ----
+PYTHON=""
+if command -v python3 &>/dev/null; then
+    PYTHON=python3
+elif command -v python &>/dev/null; then
+    PYTHON=python
+else
+    osascript -e 'display dialog "Python non trovato!\n\nInstalla Python 3.8+ da python.org" buttons {"OK"} default button "OK" with icon stop with title "Google Maps Scraper"'
+    exit 1
+fi
+
+echo "$(date) - Python: $($PYTHON --version 2>&1)" >> "$LOG_FILE"
+
+# ---- Attiva virtual environment se esiste ----
+if [ -d ".venv" ]; then
+    source .venv/bin/activate
+fi
+
+# ---- Controlla dipendenze ----
+MISSING=0
+for pkg in flask playwright pandas openpyxl numpy; do
+    if ! $PYTHON -c "import $pkg" &>/dev/null; then
+        MISSING=1
+        break
+    fi
+done
+
+if [ $MISSING -eq 1 ]; then
+    echo "$(date) - Installing dependencies..." >> "$LOG_FILE"
+    $PYTHON -m pip install -r requirements.txt >> "$LOG_FILE" 2>&1 || {
+        osascript -e 'display dialog "Errore installazione dipendenze!\n\nControlla .server.log per dettagli." buttons {"OK"} default button "OK" with icon stop with title "Google Maps Scraper"'
+        exit 1
+    }
+fi
+
+# ---- Controlla Chromium ----
+CHROMIUM_FOUND=0
+for chrome in "$HOME/Library/Caches/ms-playwright"/chromium-*/chrome-mac/Chromium.app/Contents/MacOS/Chromium; do
+    if [ -x "$chrome" ] 2>/dev/null; then
+        CHROMIUM_FOUND=1
+        break
+    fi
+done
+
+if [ $CHROMIUM_FOUND -eq 0 ]; then
+    echo "$(date) - Installing Playwright Chromium..." >> "$LOG_FILE"
+    $PYTHON -m playwright install chromium >> "$LOG_FILE" 2>&1 || {
+        osascript -e 'display dialog "Errore installazione Chromium!\n\nControlla .server.log per dettagli." buttons {"OK"} default button "OK" with icon stop with title "Google Maps Scraper"'
+        exit 1
+    }
+fi
+
+# ---- Controlla che la porta sia libera ----
+if lsof -i :5001 &>/dev/null; then
+    # Server già in esecuzione, apri solo il browser
+    open http://localhost:5001
+    exit 0
+fi
+
+# ---- Avvia il server in background ----
+echo "$(date) - Starting server..." >> "$LOG_FILE"
+$PYTHON api_server.py >> "$LOG_FILE" 2>&1 &
+SERVER_PID=$!
+
+# ---- Aspetta che il server sia pronto (max 30 secondi) ----
+for i in $(seq 1 30); do
+    if curl -s http://localhost:5001/health > /dev/null 2>&1; then
+        echo "$(date) - Server ready!" >> "$LOG_FILE"
+        open http://localhost:5001
+        break
+    fi
+    sleep 1
+done
+
+# ---- Tieni l'app viva finché il server gira ----
+wait $SERVER_PID

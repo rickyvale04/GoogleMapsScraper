@@ -113,7 +113,10 @@ def find_chromium() -> Optional[str]:
     """Find an available Chromium executable from Playwright cache."""
     import platform
     # Determine Playwright cache directory per platform
-    if platform.system() == "Windows":
+    if platform.system() == "Darwin":
+        cache_dir = os.path.join(os.path.expanduser("~"), "Library", "Caches", "ms-playwright")
+        sub_path = os.path.join("chrome-mac", "Chromium.app", "Contents", "MacOS", "Chromium")
+    elif platform.system() == "Windows":
         cache_dir = os.path.join(os.environ.get("LOCALAPPDATA", ""), "ms-playwright")
         sub_path = os.path.join("chrome-win", "chrome.exe")
     else:

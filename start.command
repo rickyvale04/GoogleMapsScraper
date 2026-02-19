@@ -89,8 +89,14 @@ fi
 
 # ---- Controllo Playwright Chromium ----
 # Check if any Chromium binary exists in Playwright cache
+if [ "$(uname)" = "Darwin" ]; then
+    CHROME_PATTERN="$HOME/Library/Caches/ms-playwright/chromium-*/chrome-mac/Chromium.app/Contents/MacOS/Chromium"
+else
+    CHROME_PATTERN="$HOME/.cache/ms-playwright/chromium-*/chrome-linux/chrome"
+fi
+
 CHROMIUM_FOUND=0
-for dir in "$HOME/.cache/ms-playwright"/chromium-*/chrome-linux/chrome; do
+for dir in $CHROME_PATTERN; do
     if [ -x "$dir" ] 2>/dev/null; then
         CHROMIUM_FOUND=1
         echo "[OK] Playwright Chromium ready ($dir)"
