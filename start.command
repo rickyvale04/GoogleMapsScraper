@@ -3,6 +3,11 @@
 # Vai nella directory dello script
 cd "$(dirname "$0")"
 
+# macOS: rimuovi il blocco Gatekeeper se presente
+if [ "$(uname)" = "Darwin" ]; then
+    xattr -d com.apple.quarantine "$0" 2>/dev/null
+fi
+
 clear
 echo "========================================="
 echo "  GOOGLE MAPS SCRAPER - SERVER"

@@ -38,6 +38,16 @@ playwright install chromium
 ```
 
 ### 3. Avvia il server
+
+**macOS**: fai doppio click su `start.command`.
+Se appare l'avviso "Apple non può verificare", fai **click destro > Apri** la prima volta, oppure esegui da Terminale:
+```bash
+xattr -d com.apple.quarantine start.command
+```
+
+**Windows**: fai doppio click su `startWindows.bat`.
+
+**Oppure manualmente:**
 ```bash
 python3 api_server.py
 ```
