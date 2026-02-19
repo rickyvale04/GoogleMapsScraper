@@ -12,22 +12,55 @@ echo "$(date) - Starting Google Maps Scraper..." > "$LOG_FILE"
 xattr -d com.apple.quarantine "$0" 2>/dev/null
 xattr -d com.apple.quarantine "$REPO_DIR/GoogleMapsScraper.app" 2>/dev/null
 
+# ---- Configura PATH per trovare Python ----
+# macOS .app bundle ha un PATH minimo (/usr/bin:/bin:/usr/sbin:/sbin)
+# Aggiungiamo tutti i path comuni dove Python potrebbe essere installato
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/local/sbin:$PATH"
+
+# Prova a caricare il profilo shell dell'utente per PATH personalizzati
+if [ -f "$HOME/.zprofile" ]; then
+    source "$HOME/.zprofile" 2>/dev/null
+fi
+if [ -f "$HOME/.zshrc" ]; then
+    source "$HOME/.zshrc" 2>/dev/null
+fi
+if [ -f "$HOME/.bash_profile" ]; then
+    source "$HOME/.bash_profile" 2>/dev/null
+fi
+if [ -f "$HOME/.profile" ]; then
+    source "$HOME/.profile" 2>/dev/null
+fi
+
+echo "$(date) - PATH: $PATH" >> "$LOG_FILE"
+
 # ---- Trova Python ----
 PYTHON=""
 if command -v python3 &>/dev/null; then
     PYTHON=python3
 elif command -v python &>/dev/null; then
     PYTHON=python
+elif [ -x "/opt/homebrew/bin/python3" ]; then
+    PYTHON="/opt/homebrew/bin/python3"
+elif [ -x "/usr/local/bin/python3" ]; then
+    PYTHON="/usr/local/bin/python3"
+elif [ -x "/Library/Frameworks/Python.framework/Versions/Current/bin/python3" ]; then
+    PYTHON="/Library/Frameworks/Python.framework/Versions/Current/bin/python3"
 else
-    osascript -e 'display dialog "Python non trovato!\n\nInstalla Python 3.8+ da python.org" buttons {"OK"} default button "OK" with icon stop with title "Google Maps Scraper"'
+    osascript -e 'display dialog "Python non trovato!\n\nInstalla Python 3.8+ da python.org\no con: brew install python3" buttons {"OK"} default button "OK" with icon stop with title "Google Maps Scraper"'
     exit 1
 fi
 
-echo "$(date) - Python: $($PYTHON --version 2>&1)" >> "$LOG_FILE"
+echo "$(date) - Python: $PYTHON ($($PYTHON --version 2>&1))" >> "$LOG_FILE"
 
-# ---- Attiva virtual environment se esiste ----
+# ---- Virtual environment ----
+if [ ! -d ".venv" ]; then
+    echo "$(date) - Creating virtual environment..." >> "$LOG_FILE"
+    $PYTHON -m venv .venv >> "$LOG_FILE" 2>&1
+fi
+
 if [ -d ".venv" ]; then
     source .venv/bin/activate
+    echo "$(date) - Activated venv" >> "$LOG_FILE"
 fi
 
 # ---- Controlla dipendenze ----
@@ -35,16 +68,23 @@ MISSING=0
 for pkg in flask playwright pandas openpyxl numpy; do
     if ! $PYTHON -c "import $pkg" &>/dev/null; then
         MISSING=1
+        echo "$(date) - Missing package: $pkg" >> "$LOG_FILE"
         break
     fi
 done
 
 if [ $MISSING -eq 1 ]; then
     echo "$(date) - Installing dependencies..." >> "$LOG_FILE"
-    $PYTHON -m pip install -r requirements.txt >> "$LOG_FILE" 2>&1 || {
-        osascript -e 'display dialog "Errore installazione dipendenze!\n\nControlla .server.log per dettagli." buttons {"OK"} default button "OK" with icon stop with title "Google Maps Scraper"'
-        exit 1
-    }
+    $PYTHON -m pip install -r requirements.txt >> "$LOG_FILE" 2>&1
+    if [ $? -ne 0 ]; then
+        # Riprova con --user se il primo tentativo fallisce
+        echo "$(date) - Retrying with --user flag..." >> "$LOG_FILE"
+        $PYTHON -m pip install --user -r requirements.txt >> "$LOG_FILE" 2>&1 || {
+            osascript -e 'display dialog "Errore installazione dipendenze!\n\nProva ad avviare start.command da terminale per la prima installazione, poi usa questa app." buttons {"OK"} default button "OK" with icon stop with title "Google Maps Scraper"'
+            exit 1
+        }
+    fi
+    echo "$(date) - Dependencies installed" >> "$LOG_FILE"
 fi
 
 # ---- Controlla Chromium ----
@@ -59,9 +99,10 @@ done
 if [ $CHROMIUM_FOUND -eq 0 ]; then
     echo "$(date) - Installing Playwright Chromium..." >> "$LOG_FILE"
     $PYTHON -m playwright install chromium >> "$LOG_FILE" 2>&1 || {
-        osascript -e 'display dialog "Errore installazione Chromium!\n\nControlla .server.log per dettagli." buttons {"OK"} default button "OK" with icon stop with title "Google Maps Scraper"'
+        osascript -e 'display dialog "Errore installazione Chromium!\n\nProva ad avviare start.command da terminale per la prima installazione, poi usa questa app." buttons {"OK"} default button "OK" with icon stop with title "Google Maps Scraper"'
         exit 1
     }
+    echo "$(date) - Chromium installed" >> "$LOG_FILE"
 fi
 
 # ---- Controlla che la porta sia libera ----
