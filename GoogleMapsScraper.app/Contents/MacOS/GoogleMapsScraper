@@ -9,11 +9,13 @@
 # Struttura: repo/GoogleMapsScraper.app/Contents/MacOS/GoogleMapsScraper
 REPO_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
 APP_DIR="$REPO_DIR/app"
-cd "$APP_DIR"
 
 LOG_FILE="$REPO_DIR/.server.log"
 echo "$(date) - ===== Google Maps Scraper avviato =====" > "$LOG_FILE"
 echo "$(date) - REPO_DIR: $REPO_DIR" >> "$LOG_FILE"
+
+# Notifica immediata: l'utente vede subito che qualcosa sta succedendo
+osascript -e 'display notification "Avvio in corso..." with title "Google Maps Scraper"' 2>/dev/null
 
 # ---- Rimuovi quarantena Gatekeeper ----
 xattr -d com.apple.quarantine "$0" 2>/dev/null
@@ -84,9 +86,11 @@ if [ ! -d "$APP_DIR/.venv" ]; then
     }
 fi
 
-# ---- Attiva virtual environment ----
+# ---- Attiva virtual environment e usa il suo Python ----
 if [ -f "$APP_DIR/.venv/bin/activate" ]; then
     source "$APP_DIR/.venv/bin/activate"
+    # Usa il Python del venv per isolare le dipendenze
+    PYTHON="$APP_DIR/.venv/bin/python3"
     echo "$(date) - Virtual environment attivato" >> "$LOG_FILE"
 fi
 
@@ -103,9 +107,8 @@ if [ $MISSING -eq 1 ]; then
     echo "$(date) - Installazione dipendenze Python..." >> "$LOG_FILE"
     osascript -e 'display notification "Installazione dipendenze... (può richiedere qualche minuto)" with title "Google Maps Scraper"' 2>/dev/null
 
-    # Prima prova normale, poi con --user come fallback permessi
+    # Installa nel venv (nessun --user necessario dentro il venv)
     "$PYTHON" -m pip install --quiet -r "$APP_DIR/requirements.txt" >> "$LOG_FILE" 2>&1 \
-    || "$PYTHON" -m pip install --quiet --user -r "$APP_DIR/requirements.txt" >> "$LOG_FILE" 2>&1 \
     || {
         osascript -e 'display dialog "Errore installazione dipendenze!\n\nSoluzione: apri start.command nel Terminale per la prima installazione:\n1. Apri Terminale\n2. Trascina start.command nella finestra\n3. Premi Invio\n\nDopo completa, usa Google Maps Scraper.app normalmente.\n\nDettagli in: .server.log" buttons {"OK"} default button "OK" with icon stop with title "Google Maps Scraper"'
         exit 1
@@ -136,6 +139,7 @@ fi
 # ---- Controlla porta 5001 ----
 if lsof -i :5001 &>/dev/null; then
     echo "$(date) - Server già in esecuzione sulla porta 5001, apro il browser" >> "$LOG_FILE"
+    osascript -e 'display notification "Apertura Google Maps Scraper..." with title "Google Maps Scraper"' 2>/dev/null
     open http://localhost:5001
     exit 0
 fi
@@ -144,8 +148,8 @@ fi
 echo "$(date) - Avvio server da $APP_DIR..." >> "$LOG_FILE"
 cd "$APP_DIR"
 
-# Apri il browser dopo 4 secondi (in background)
-(sleep 4 && open http://localhost:5001) &
+# Apri il browser dopo 2 secondi (in background)
+(sleep 2 && osascript -e 'display notification "Aperto su http://localhost:5001" with title "Google Maps Scraper"' 2>/dev/null && open http://localhost:5001) &
 
 # Avvia il server — rimane in foreground, quando esce lo script esce
 "$PYTHON" api_server.py >> "$LOG_FILE" 2>&1
