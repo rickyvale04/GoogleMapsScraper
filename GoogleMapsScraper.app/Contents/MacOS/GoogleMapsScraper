@@ -140,30 +140,14 @@ if lsof -i :5001 &>/dev/null; then
     exit 0
 fi
 
-# ---- Avvia server Flask in background ----
+# ---- Avvia server Flask in foreground (niente reloader = PID stabile) ----
 echo "$(date) - Avvio server da $APP_DIR..." >> "$LOG_FILE"
 cd "$APP_DIR"
-"$PYTHON" api_server.py >> "$LOG_FILE" 2>&1 &
-SERVER_PID=$!
-echo "$(date) - Server PID: $SERVER_PID" >> "$LOG_FILE"
 
-# ---- Aspetta che il server sia pronto (max 45 secondi) ----
-SERVER_READY=0
-for i in $(seq 1 45); do
-    if curl -sf http://localhost:5001/health > /dev/null 2>&1; then
-        SERVER_READY=1
-        echo "$(date) - Server pronto dopo ${i}s" >> "$LOG_FILE"
-        break
-    fi
-    sleep 1
-done
+# Apri il browser dopo 4 secondi (in background)
+(sleep 4 && open http://localhost:5001) &
 
-if [ $SERVER_READY -eq 1 ]; then
-    open http://localhost:5001
-else
-    echo "$(date) - WARN: server non risponde dopo 45s" >> "$LOG_FILE"
-    osascript -e 'display dialog "Il server non si è avviato in tempo.\n\nControlla .server.log per i dettagli.\nProva start.command nel Terminale per vedere gli errori." buttons {"OK"} default button "OK" with icon caution with title "Google Maps Scraper"'
-fi
+# Avvia il server — rimane in foreground, quando esce lo script esce
+"$PYTHON" api_server.py >> "$LOG_FILE" 2>&1
 
-# ---- Mantieni il processo vivo finché il server gira ----
-wait $SERVER_PID
+echo "$(date) - Server terminato." >> "$LOG_FILE"

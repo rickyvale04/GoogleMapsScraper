@@ -281,7 +281,7 @@ def run_server():
     print("   GET /health - Health check")
     print("\n" + "=" * 50)
 
-    app.run(host=SERVER_HOST, port=SERVER_PORT, debug=True)
+    app.run(host=SERVER_HOST, port=SERVER_PORT, debug=False, use_reloader=False)
 
 
 if __name__ == '__main__':
