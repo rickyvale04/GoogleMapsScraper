@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.Python
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Playwright
+.playwright/
+
+# Results & temp files
+*.csv
+result.csv
+temp_*
+tmp_*
+
+# Logs
+*.log
+.server.log
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+
+# First-run flag
+.gms_initialized
+
+# Environment
+.env
+.env.*

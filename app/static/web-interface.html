@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps Scraper</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset & base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #1a1a1a;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            padding: 32px 0 24px;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 6px;
+        }
+
+        .header .subtitle {
+            color: #6b7280;
+            font-size: 15px;
+            font-weight: 400;
+        }
+
+        /* Card */
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+
+        /* Input groups */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .command-input {
+            width: 100%;
+            background-color: #f3f4f6;
+            border: 1.5px solid #e5e7eb;
+            color: #1a1a1a;
+            padding: 10px 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .command-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .command-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .input-hint {
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #2563eb;
+            border: none;
+            color: #ffffff;
+            padding: 10px 20px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background-color 0.15s, opacity 0.15s;
+        }
+
+        .btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        .btn:disabled {
+            background-color: #d1d5db;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .btn:disabled:hover {
+            background-color: #d1d5db;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: #374151;
+            border: 1.5px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f3f4f6;
+        }
+
+        .btn-secondary:disabled {
+            background-color: transparent;
+            color: #9ca3af;
+            border-color: #e5e7eb;
+        }
+
+        /* Example buttons */
+        .example-buttons {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .btn-example {
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            color: #6b7280;
+            padding: 4px 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-example:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+            background-color: #eff6ff;
+        }
+
+        /* Status */
+        .status {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #6b7280;
+            border-left: 4px solid #d1d5db;
+        }
+
+        .status.searching {
+            border-left-color: #d97706;
+            color: #92400e;
+            background-color: #fffbeb;
+        }
+
+        .status.success {
+            border-left-color: #16a34a;
+            color: #166534;
+            background-color: #f0fdf4;
+        }
+
+        .status.error {
+            border-left-color: #dc2626;
+            color: #991b1b;
+            background-color: #fef2f2;
+        }
+
+        /* Progress bar */
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 999px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #2563eb;
+            border-radius: 999px;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .progress-text {
+            font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+
+        /* Results section */
+        .results-section {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .results-header {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .results-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .results-count {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        /* Results table */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px 16px;
+            text-align: left;
+        }
+
+        .results-table th {
+            background-color: #f9fafb;
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .results-table td {
+            color: #374151;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .results-table tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        .results-table tbody tr:hover {
+            background-color: #eff6ff;
+        }
+
+        .results-table a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .results-table a:hover {
+            text-decoration: underline;
+        }
+
+        /* Help section */
+        .help-section {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .help-header {
+            padding: 16px 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background-color 0.15s;
+        }
+
+        .help-header:hover {
+            background-color: #f9fafb;
+        }
+
+        .help-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0;
+        }
+
+        .help-toggle {
+            color: #6b7280;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .help-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .help-content.open {
+            max-height: 500px;
+        }
+
+        .help-content-inner {
+            padding: 0 24px 24px 24px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .help-content ol {
+            list-style: none;
+            counter-reset: steps;
+            padding: 16px 0 0 0;
+        }
+
+        .help-content ol li {
+            counter-increment: steps;
+            margin-bottom: 10px;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .help-content ol li::before {
+            content: counter(steps) ".";
+            color: #2563eb;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .help-tip {
+            margin-top: 16px;
+            padding: 12px 16px;
+            background-color: #eff6ff;
+            border-radius: 8px;
+            color: #1e40af;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* Loading spinner */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e5e7eb;
+            border-radius: 50%;
+            border-top-color: #2563eb;
+            animation: spin 0.8s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none;
+        }
+
+        /* Button row */
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .button-row .btn {
+            margin-right: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 16px 0;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .results-table {
+                font-size: 11px;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 8px 10px;
+            }
+
+            .btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .button-row {
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Google Maps Scraper</h1>
+            <div class="subtitle">Search and extract business data from Google Maps</div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="help-section">
+            <div class="help-header" onclick="toggleHelp()">
+                <h2>How It Works</h2>
+                <span class="help-toggle" id="helpToggle">Show</span>
+            </div>
+            <div class="help-content" id="helpContent">
+                <div class="help-content-inner">
+                    <ol>
+                        <li>Enter a search query describing the type of business you want to find</li>
+                        <li>Enter one or more target cities, separated by commas</li>
+                        <li>Click "Start Search" to launch the Google Maps scraper</li>
+                        <li>Download the results as a CSV file when the search is complete</li>
+                    </ol>
+                    <div class="help-tip">Tip: Start with 10&#8211;20 results per search for fast results. You can always run more searches later.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search form -->
+        <div class="card">
+            <h2>Search</h2>
+
+            <div class="input-group">
+                <label class="input-label" for="searchQuery">Search query</label>
+                <input
+                    type="text"
+                    id="searchQuery"
+                    class="command-input"
+                    placeholder="e.g. pizza restaurants, dentists, travel agencies..."
+                >
+                <div class="input-hint">What type of business are you looking for?</div>
+                <div class="example-buttons">
+                    <button type="button" class="btn-example" onclick="fillExample('pizza')">Pizza in US</button>
+                    <button type="button" class="btn-example" onclick="fillExample('dentists')">Dentists in UK</button>
+                    <button type="button" class="btn-example" onclick="fillExample('agenzie')">Agenzie viaggi IT</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="cities">Target cities</label>
+                <input
+                    type="text"
+                    id="cities"
+                    class="command-input"
+                    placeholder="e.g. Milan, Rome, Naples or New York, Los Angeles, Chicago"
+                >
+                <div class="input-hint">Separate multiple cities with commas. English names work best.</div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="filters">Additional filters (optional)</label>
+                <input
+                    type="text"
+                    id="filters"
+                    class="command-input"
+                    placeholder="e.g. downtown area, with website, open on Sunday"
+                >
+                <div class="input-hint">Narrow by area, feature, or hours.</div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="maxResults">Minimum number of results</label>
+                <input
+                    type="number"
+                    id="maxResults"
+                    class="command-input"
+                    value="20"
+                    min="1"
+                    max="200"
+                >
+                <div class="input-hint">More results = longer search. Start with 10&#8211;20.</div>
+            </div>
+
+            <div class="button-row">
+                <button class="btn" id="searchBtn" onclick="startSearch()">
+                    Start Search
+                </button>
+                <button class="btn btn-secondary" id="downloadBtn" onclick="downloadCSV()" disabled>
+                    Download CSV
+                </button>
+                <button class="btn btn-secondary" id="clearBtn" onclick="clearResults()">
+                    Clear Results
+                </button>
+            </div>
+        </div>
+
+        <!-- Status indicator -->
+        <div id="status" class="status hidden">
+            Ready for search...
+        </div>
+
+        <!-- Results section -->
+        <div id="resultsSection" class="results-section hidden">
+            <div class="results-header">
+                <div class="results-title">Search Results</div>
+                <div class="results-count" id="resultsCount">0 results found</div>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="results-table" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>City</th>
+                            <th>Address</th>
+                            <th>Phone</th>
+                            <th>Website</th>
+                            <th>Type</th>
+                            <th>Reviews</th>
+                            <th>Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentResults = [];
+        let currentSearchId = null;
+        let pollInterval = null;
+
+        /**
+         * Start real search via API
+         */
+        function startSearch() {
+            const query = document.getElementById('searchQuery').value.trim();
+            const maxResults = parseInt(document.getElementById('maxResults').value) || 20;
+            const filters = document.getElementById('filters').value.trim();
+            const cities = document.getElementById('cities').value.trim();
+
+            if (!query) {
+                showStatus('Enter a valid search query', 'error');
+                return;
+            }
+
+            if (!cities) {
+                showStatus('Enter at least one target city', 'error');
+                return;
+            }
+
+            // Calculate and show time estimate
+            const cityList = cities.split(',').map(c => c.trim()).filter(c => c.length > 0);
+            const cityCount = cityList.length;
+            const estMinutes = cityCount * 2 + '-' + cityCount * 3;
+            showStatus(`Starting Google Maps search across selected cities...\nEstimated time: ~${estMinutes} minutes for ${cityCount} ${cityCount === 1 ? 'city' : 'cities'}`, 'searching');
+            document.getElementById('searchBtn').disabled = true;
+
+            // Call the real API
+            fetch('/api/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: query,
+                    maxResults: maxResults,
+                    filters: filters,
+                    cities: cities
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showStatus(`Error: ${data.error}`, 'error');
+                    document.getElementById('searchBtn').disabled = false;
+                    return;
+                }
+
+                currentSearchId = data.search_id;
+                showStatus('Search in progress across multiple cities... This may take several minutes.', 'searching');
+
+                // Start polling to check status
+                startPolling();
+            })
+            .catch(error => {
+                console.error('Request error:', error);
+                showStatus('Server connection error', 'error');
+                document.getElementById('searchBtn').disabled = false;
+            });
+        }
+
+        /**
+         * Start polling to check search status
+         */
+        function startPolling() {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+
+            pollInterval = setInterval(() => {
+                checkSearchStatus();
+            }, 3000);
+
+            // First immediate check
+            checkSearchStatus();
+        }
+
+        /**
+         * Check search status
+         */
+        function checkSearchStatus() {
+            if (!currentSearchId) return;
+
+            fetch(`/api/search/${currentSearchId}/status`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'completed') {
+                    getSearchResults();
+                } else if (data.status === 'error' || data.status === 'timeout') {
+                    clearInterval(pollInterval);
+                    showStatus(`${data.error || 'Error during search'}`, 'error');
+                    document.getElementById('searchBtn').disabled = false;
+                } else {
+                    // Still in progress
+                    let statusMsg = `Search in progress... (${data.elapsed_time})`;
+                    if (data.current_city) {
+                        statusMsg += ` | Processing: ${data.current_city}`;
+                    }
+
+                    let pct = 0;
+                    let progressLabel = '';
+                    if (data.progress) {
+                        statusMsg += ` | Results: ${data.progress}`;
+                        const parts = data.progress.split('/');
+                        if (parts.length === 2) {
+                            const current = parseInt(parts[0]);
+                            const total = parseInt(parts[1]);
+                            if (total > 0) {
+                                pct = Math.min(Math.round((current / total) * 100), 100);
+                                progressLabel = `${pct}% \u2014 ${current}/${total} results`;
+                            }
+                        }
+                    }
+                    showStatus(statusMsg, 'searching', pct, progressLabel);
+                }
+            })
+            .catch(error => {
+                console.error('Status check error:', error);
+                clearInterval(pollInterval);
+                showStatus('Connection error', 'error');
+                document.getElementById('searchBtn').disabled = false;
+            });
+        }
+
+        /**
+         * Get search results
+         */
+        function getSearchResults() {
+            if (!currentSearchId) return;
+
+            fetch(`/api/search/${currentSearchId}/results`)
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(pollInterval);
+
+                if (data.error) {
+                    showStatus(`Error: ${data.error}`, 'error');
+                    document.getElementById('searchBtn').disabled = false;
+                    return;
+                }
+
+                currentResults = data.results || [];
+                displayResults(currentResults, data.query);
+                showStatus(`Search completed: ${currentResults.length} results found from Google Maps`, 'success');
+
+                document.getElementById('searchBtn').disabled = false;
+                document.getElementById('downloadBtn').disabled = false;
+            })
+            .catch(error => {
+                console.error('Results retrieval error:', error);
+                clearInterval(pollInterval);
+                showStatus('Error retrieving results', 'error');
+                document.getElementById('searchBtn').disabled = false;
+            });
+        }
+
+        /**
+         * Clear results
+         */
+        function clearResults() {
+            currentResults = [];
+            currentSearchId = null;
+
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('status').classList.add('hidden');
+            document.getElementById('downloadBtn').disabled = true;
+            document.getElementById('searchQuery').value = '';
+            document.getElementById('filters').value = '';
+            document.getElementById('searchBtn').disabled = false;
+        }
+
+        /**
+         * Show results in table
+         */
+        function displayResults(results, query) {
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsBody = document.getElementById('resultsBody');
+            const resultsCount = document.getElementById('resultsCount');
+
+            resultsBody.innerHTML = '';
+
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${result.name}</strong></td>
+                    <td><strong>${result.city || 'Unknown'}</strong></td>
+                    <td>${result.address}</td>
+                    <td>${result.phone}</td>
+                    <td>${result.website !== '-' ? `<a href="http://${result.website}" target="_blank">${result.website}</a>` : '-'}</td>
+                    <td>${result.type}</td>
+                    <td>${result.reviews}</td>
+                    <td>${result.hours}</td>
+                `;
+                resultsBody.appendChild(row);
+            });
+
+            resultsCount.textContent = `${results.length} results found for "${query}"`;
+            resultsSection.classList.remove('hidden');
+        }
+
+        /**
+         * Show status message
+         */
+        function showStatus(message, type = '', progressPct = 0, progressLabel = '') {
+            const status = document.getElementById('status');
+            const escaped = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            let html = escaped.replace(/\n/g, '<br>');
+
+            if (type === 'searching' && progressPct > 0) {
+                html += `<div class="progress-track"><div class="progress-fill" style="width:${progressPct}%"></div></div>`;
+                html += `<div class="progress-text">${progressLabel}</div>`;
+            }
+
+            status.innerHTML = html;
+            status.className = `status ${type}`;
+            status.classList.remove('hidden');
+
+            if (type !== 'searching') {
+                setTimeout(() => {
+                    status.classList.add('hidden');
+                }, 5000);
+            }
+        }
+
+        /**
+         * Download results as CSV file
+         */
+        function downloadCSV() {
+            if (currentResults.length === 0) {
+                showStatus('No results to download', 'error');
+                return;
+            }
+
+            const headers = ['Name', 'City', 'Address', 'Phone', 'Website', 'Type', 'Reviews', 'Hours'];
+            const csvContent = [
+                headers.join(','),
+                ...currentResults.map(result => [
+                    `"${result.name}"`,
+                    `"${result.city || 'Unknown'}"`,
+                    `"${result.address}"`,
+                    `"${result.phone}"`,
+                    `"${result.website}"`,
+                    `"${result.type}"`,
+                    `"${result.reviews}"`,
+                    `"${result.hours}"`
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `google_maps_results_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showStatus('CSV file downloaded successfully!', 'success');
+        }
+
+        /**
+         * Toggle the How It Works help section
+         */
+        function toggleHelp() {
+            const content = document.getElementById('helpContent');
+            const toggle = document.getElementById('helpToggle');
+            const isOpen = content.classList.toggle('open');
+            toggle.textContent = isOpen ? 'Hide' : 'Show';
+        }
+
+        /**
+         * Fill form with example data
+         */
+        function fillExample(type) {
+            const examples = {
+                pizza: { query: 'pizza restaurants', cities: 'New York, Chicago, Los Angeles' },
+                dentists: { query: 'dentists', cities: 'London, Manchester, Birmingham' },
+                agenzie: { query: 'agenzie di viaggi', cities: 'Milano, Roma, Napoli' }
+            };
+            const ex = examples[type];
+            if (ex) {
+                document.getElementById('searchQuery').value = ex.query;
+                document.getElementById('cities').value = ex.cities;
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    startSearch();
+                }
+            });
+
+            document.getElementById('filters').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    startSearch();
+                }
+            });
+
+            document.getElementById('cities').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    startSearch();
+                }
+            });
+
+            document.getElementById('maxResults').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    startSearch();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

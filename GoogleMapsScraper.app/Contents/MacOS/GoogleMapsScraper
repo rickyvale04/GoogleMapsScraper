@@ -1,0 +1,169 @@
+#!/bin/bash
+
+# ============================================================
+# Google Maps Scraper — macOS App Launcher
+# Funziona anche su Mac di altri utenti che scaricano la cartella.
+# ============================================================
+
+# ---- Trova la root del repository ----
+# Struttura: repo/GoogleMapsScraper.app/Contents/MacOS/GoogleMapsScraper
+REPO_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+APP_DIR="$REPO_DIR/app"
+cd "$APP_DIR"
+
+LOG_FILE="$REPO_DIR/.server.log"
+echo "$(date) - ===== Google Maps Scraper avviato =====" > "$LOG_FILE"
+echo "$(date) - REPO_DIR: $REPO_DIR" >> "$LOG_FILE"
+
+# ---- Rimuovi quarantena Gatekeeper ----
+xattr -d com.apple.quarantine "$0" 2>/dev/null
+xattr -dr com.apple.quarantine "$REPO_DIR/GoogleMapsScraper.app" 2>/dev/null
+
+# ---- PATH esteso (macOS GUI lancia con PATH minimale) ----
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/local/sbin:\
+/Library/Frameworks/Python.framework/Versions/3.13/bin:\
+/Library/Frameworks/Python.framework/Versions/3.12/bin:\
+/Library/Frameworks/Python.framework/Versions/3.11/bin:\
+/Library/Frameworks/Python.framework/Versions/3.10/bin:\
+/Library/Frameworks/Python.framework/Versions/3.9/bin:\
+/Library/Frameworks/Python.framework/Versions/3.8/bin:\
+$HOME/.pyenv/shims:$HOME/.pyenv/bin:\
+$HOME/Library/Python/3.11/bin:\
+$HOME/Library/Python/3.10/bin:\
+$HOME/Library/Python/3.9/bin:\
+/usr/bin:/bin:/usr/sbin:/sbin"
+
+# ---- Carica profili shell (pyenv, conda, brew personalizzati, ecc.) ----
+for profile in "$HOME/.zshrc" "$HOME/.zprofile" "$HOME/.bash_profile" "$HOME/.profile"; do
+    [ -r "$profile" ] && source "$profile" 2>/dev/null || true
+done
+echo "$(date) - PATH: $PATH" >> "$LOG_FILE"
+
+# ---- Trova Python ----
+PYTHON=""
+
+# 1) Prova con command -v (funziona se PATH è caricato correttamente)
+for py_cmd in python3 python3.13 python3.12 python3.11 python3.10 python3.9 python; do
+    if command -v "$py_cmd" &>/dev/null; then
+        PYTHON="$(command -v "$py_cmd")"
+        break
+    fi
+done
+
+# 2) Fallback: path espliciti comuni (caso in cui command -v fallisce)
+if [ -z "$PYTHON" ]; then
+    for py_path in \
+        /opt/homebrew/bin/python3 \
+        /usr/local/bin/python3 \
+        /Library/Frameworks/Python.framework/Versions/3.13/bin/python3 \
+        /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 \
+        /Library/Frameworks/Python.framework/Versions/3.11/bin/python3 \
+        /Library/Frameworks/Python.framework/Versions/3.10/bin/python3 \
+        /Library/Frameworks/Python.framework/Versions/3.9/bin/python3 \
+        /usr/bin/python3; do
+        if [ -x "$py_path" ]; then
+            PYTHON="$py_path"
+            break
+        fi
+    done
+fi
+
+if [ -z "$PYTHON" ]; then
+    osascript -e 'display dialog "Python non trovato!\n\nInstalla Python 3.9+ da:\n  python.org/downloads\n\nOppure con Homebrew:\n  brew install python3\n\nDopo linstallazione riavvia Google Maps Scraper.\n\nAlternativa: apri start.command nel Terminale per la prima configurazione." buttons {"Apri python.org", "OK"} default button "OK" with icon stop with title "Google Maps Scraper"' 2>/dev/null
+    exit 1
+fi
+
+echo "$(date) - Python trovato: $PYTHON ($($PYTHON --version 2>&1))" >> "$LOG_FILE"
+
+# ---- Crea virtual environment se non esiste ----
+if [ ! -d "$APP_DIR/.venv" ]; then
+    echo "$(date) - Creazione virtual environment..." >> "$LOG_FILE"
+    osascript -e 'display notification "Prima configurazione in corso... (1-3 minuti)" with title "Google Maps Scraper"' 2>/dev/null
+    $PYTHON -m venv "$APP_DIR/.venv" >> "$LOG_FILE" 2>&1 || {
+        echo "$(date) - WARN: impossibile creare venv, continuo senza" >> "$LOG_FILE"
+    }
+fi
+
+# ---- Attiva virtual environment ----
+if [ -f "$APP_DIR/.venv/bin/activate" ]; then
+    source "$APP_DIR/.venv/bin/activate"
+    echo "$(date) - Virtual environment attivato" >> "$LOG_FILE"
+fi
+
+# ---- Installa dipendenze se mancanti ----
+MISSING=0
+for pkg in flask flask_cors playwright pandas; do
+    if ! "$PYTHON" -c "import $pkg" &>/dev/null; then
+        MISSING=1
+        break
+    fi
+done
+
+if [ $MISSING -eq 1 ]; then
+    echo "$(date) - Installazione dipendenze Python..." >> "$LOG_FILE"
+    osascript -e 'display notification "Installazione dipendenze... (può richiedere qualche minuto)" with title "Google Maps Scraper"' 2>/dev/null
+
+    # Prima prova normale, poi con --user come fallback permessi
+    "$PYTHON" -m pip install --quiet -r "$APP_DIR/requirements.txt" >> "$LOG_FILE" 2>&1 \
+    || "$PYTHON" -m pip install --quiet --user -r "$APP_DIR/requirements.txt" >> "$LOG_FILE" 2>&1 \
+    || {
+        osascript -e 'display dialog "Errore installazione dipendenze!\n\nSoluzione: apri start.command nel Terminale per la prima installazione:\n1. Apri Terminale\n2. Trascina start.command nella finestra\n3. Premi Invio\n\nDopo completa, usa Google Maps Scraper.app normalmente.\n\nDettagli in: .server.log" buttons {"OK"} default button "OK" with icon stop with title "Google Maps Scraper"'
+        exit 1
+    }
+    echo "$(date) - Dipendenze installate" >> "$LOG_FILE"
+fi
+
+# ---- Controlla e installa Playwright Chromium ----
+CHROMIUM_FOUND=0
+for chrome in "$HOME/Library/Caches/ms-playwright"/chromium-*/chrome-mac/Chromium.app/Contents/MacOS/Chromium \
+              "$HOME/Library/Caches/ms-playwright"/chromium-*/chrome-mac-*/Chromium.app/Contents/MacOS/Chromium; do
+    if [ -x "$chrome" ] 2>/dev/null; then
+        CHROMIUM_FOUND=1
+        break
+    fi
+done
+
+if [ $CHROMIUM_FOUND -eq 0 ]; then
+    echo "$(date) - Installazione Playwright Chromium..." >> "$LOG_FILE"
+    osascript -e 'display notification "Download Chromium... (200 MB, una tantum)" with title "Google Maps Scraper"' 2>/dev/null
+    "$PYTHON" -m playwright install chromium >> "$LOG_FILE" 2>&1 || {
+        osascript -e 'display dialog "Errore download Chromium!\n\nProva a usare start.command nel Terminale per la prima installazione.\n\nDettagli in: .server.log" buttons {"OK"} default button "OK" with icon stop with title "Google Maps Scraper"'
+        exit 1
+    }
+    echo "$(date) - Chromium installato" >> "$LOG_FILE"
+fi
+
+# ---- Controlla porta 5001 ----
+if lsof -i :5001 &>/dev/null; then
+    echo "$(date) - Server già in esecuzione sulla porta 5001, apro il browser" >> "$LOG_FILE"
+    open http://localhost:5001
+    exit 0
+fi
+
+# ---- Avvia server Flask in background ----
+echo "$(date) - Avvio server da $APP_DIR..." >> "$LOG_FILE"
+cd "$APP_DIR"
+"$PYTHON" api_server.py >> "$LOG_FILE" 2>&1 &
+SERVER_PID=$!
+echo "$(date) - Server PID: $SERVER_PID" >> "$LOG_FILE"
+
+# ---- Aspetta che il server sia pronto (max 45 secondi) ----
+SERVER_READY=0
+for i in $(seq 1 45); do
+    if curl -sf http://localhost:5001/health > /dev/null 2>&1; then
+        SERVER_READY=1
+        echo "$(date) - Server pronto dopo ${i}s" >> "$LOG_FILE"
+        break
+    fi
+    sleep 1
+done
+
+if [ $SERVER_READY -eq 1 ]; then
+    open http://localhost:5001
+else
+    echo "$(date) - WARN: server non risponde dopo 45s" >> "$LOG_FILE"
+    osascript -e 'display dialog "Il server non si è avviato in tempo.\n\nControlla .server.log per i dettagli.\nProva start.command nel Terminale per vedere gli errori." buttons {"OK"} default button "OK" with icon caution with title "Google Maps Scraper"'
+fi
+
+# ---- Mantieni il processo vivo finché il server gira ----
+wait $SERVER_PID
