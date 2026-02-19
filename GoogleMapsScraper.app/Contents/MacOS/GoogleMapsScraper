@@ -144,14 +144,17 @@ if lsof -i :5001 &>/dev/null; then
     exit 0
 fi
 
-# ---- Avvia server Flask in foreground (niente reloader = PID stabile) ----
+# ---- Avvia server Flask in background (bash esce subito → no "not open anymore") ----
 echo "$(date) - Avvio server da $APP_DIR..." >> "$LOG_FILE"
 cd "$APP_DIR"
 
-# Apri il browser dopo 2 secondi (in background)
-(sleep 2 && osascript -e 'display notification "Aperto su http://localhost:5001" with title "Google Maps Scraper"' 2>/dev/null && open http://localhost:5001) &
+# nohup: il server sopravvive all'uscita della bash
+nohup "$PYTHON" api_server.py >> "$LOG_FILE" 2>&1 &
 
-# Avvia il server — rimane in foreground, quando esce lo script esce
-"$PYTHON" api_server.py >> "$LOG_FILE" 2>&1
+# Aspetta che Flask sia pronto poi apri il browser
+sleep 2
+osascript -e 'display notification "Aperto su http://localhost:5001" with title "Google Maps Scraper"' 2>/dev/null
+open http://localhost:5001
 
-echo "$(date) - Server terminato." >> "$LOG_FILE"
+echo "$(date) - Server avviato in background (PID $!)." >> "$LOG_FILE"
+exit 0
